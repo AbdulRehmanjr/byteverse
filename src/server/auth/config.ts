@@ -32,7 +32,6 @@ declare module "next-auth" {
 export const authConfig = {
   providers: [
   ],
-  adapter: PrismaAdapter(db),
   callbacks: {
     session: ({ session, user }) => ({
       ...session,

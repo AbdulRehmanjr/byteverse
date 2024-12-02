@@ -6,3 +6,16 @@ datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
 }
+
+model User {
+    userId String @id @default(cuid())
+    name   String
+}
+
+// GHADASDTYt571623 => cuid
+// 786767-sadase-12sdar32-dsaf23qrd-234rfd => uuid
+model Task {
+    taskId      String @id @default(cuid())
+    title       String @default("none")
+    description String @default("none")
+}
