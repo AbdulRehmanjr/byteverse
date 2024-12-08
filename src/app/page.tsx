@@ -5,7 +5,7 @@ export default function HomePage() {
   return (
     <main className="grid h-screen place-content-center">
       <TaskForm />
-      <TaskList/>
+      {/* <TaskList/> */}
     </main>
   );
 }
