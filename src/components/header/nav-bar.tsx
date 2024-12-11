@@ -4,7 +4,7 @@ import { Button } from "~/components/ui/button";
 const links = [
   { title: "About", link: "#" },
   { title: "Products", link: "#" },
-  { title: "OverflowAi", link: "#" },
+  { title: "OverflowAI", link: "#" },
 ];
 export const NavBar = () => {
   return (
@@ -17,3 +17,4 @@ export const NavBar = () => {
     </nav>
   );
 };
+
