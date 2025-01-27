@@ -35,8 +35,9 @@ export function GET(request){
 export function POST(){
 
 }
-export function DELETE(){
-
+export function DELETE(request){
+    console.log("delete api called");
+    return 
 }
 export function PUT(){
 
