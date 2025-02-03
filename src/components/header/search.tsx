@@ -8,13 +8,13 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel, 
+  FormLabel,
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
 import { Button } from "~/components/ui/button";
 import { api } from "~/trpc/react";
-import {SearchCheck} from 'lucide-react'
 
 const formSchema = z.object({
   title: z.string({ required_error: "Title is required." }),
@@ -23,7 +23,7 @@ const formSchema = z.object({
 
 type FormProps = z.infer<typeof formSchema>;
 
-export const Search = () => {
+export const Seacrh = () => {
   const form = useForm<FormProps>({
     resolver: zodResolver(formSchema),
   });
@@ -40,7 +40,7 @@ export const Search = () => {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(formSubmission)}
-        className="flex w-full gap-2 rounded-md border-2 bg-gray-50 p-4 "
+        className="flex w-full gap-2 rounded-md border-2  bg-gray-50 p-4 "
       >
         <FormField
           control={form.control}
@@ -58,9 +58,7 @@ export const Search = () => {
             </FormItem>
           )}
         />
-        <Button type="submit">
-            <SearchCheck/>
-        </Button>
+        <Button type="submit">Submit</Button>
       </form>
     </Form>
   );
