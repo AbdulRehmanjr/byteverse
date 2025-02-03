@@ -16,11 +16,8 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
-      <body className="grid grid-cols-12">
-        <Providers>
-          <Header />
-          {children}
-        </Providers>
+      <body>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
