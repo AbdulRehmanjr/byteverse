@@ -4,6 +4,9 @@ import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 import { Providers } from "~/app/provider";
 import { Header } from "~/components/header/header";
+import { Center } from "~/components/common/container-center";
+import { LandingSideBar } from "~/components/landing/side-bar";
+import { Footer } from "~/components/footer/footer";
 
 export const metadata: Metadata = {
   title: "ByteVerse",
@@ -16,11 +19,15 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
-      <body className="grid grid-cols-12">
-       
+      <body className="">
         <Providers>
-          <Header/>
-          {children}</Providers>
+          <Header />
+          <Center className="grid grid-cols-12">
+            <LandingSideBar />
+            <main className="col-span-10 bg-blue-500">{children}</main>
+          </Center>
+          <Footer/>
+        </Providers>
       </body>
     </html>
   );
