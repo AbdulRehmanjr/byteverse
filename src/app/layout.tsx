@@ -1,8 +1,9 @@
+
 import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
-import { Providers } from "~/app/provider";
+import { Providers } from "~/app/tags/provider";
 import { Header } from "~/components/header/header";
 import { Center } from "~/components/common/container-center";
 import { LandingSideBar } from "~/components/landing/side-bar";
@@ -24,7 +25,7 @@ export default function RootLayout({
           <Header />
           <Center className="grid grid-cols-12">
             <LandingSideBar />
-            <main className="col-span-10 bg-blue-500">{children}</main>
+            <main className="col-span-10 ring-blue-950">{children}</main>
           </Center>
           <Footer/>
         </Providers>
