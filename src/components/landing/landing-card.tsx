@@ -1,5 +1,6 @@
 import { Card, CardContent } from "~/components/ui/card";
-import { MessageSquare, Network, Users, FileText } from "lucide-react";
+import { MessageSquare, Network, Users, FileText, Home, MailCheck } from "lucide-react";
+import { TestContext } from "node:test";
 
 export const LandingCards = () => {
   const cards = [
@@ -31,6 +32,20 @@ export const LandingCards = () => {
       linkText: "Visit Legal",
       linkUrl: "#",
     },
+    {
+      icon :Home,
+      title: "Find Leagel Test Content",
+      description: "sample description",
+      linkText: "Visit Sample page",
+      linkurl: "#"
+      
+    },
+    {icon:MailCheck,
+      title:"Mail Box",
+      description : "Email Sample Description",
+      linkText : "Visit sample mail",
+      linkurl:"https://mail.google.com/mail/u/0/#inbox"
+    }
   ];
 
   return (

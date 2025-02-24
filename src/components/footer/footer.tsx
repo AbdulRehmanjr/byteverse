@@ -57,7 +57,7 @@ export const Footer = () => {
   ];
 
   return (
-    <footer className="bg-[#232629] py-8 text-gray-300">
+    <footer className="bg-[#0d2741] py-8 text-gray-300">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex flex-col justify-between gap-8 md:flex-row">
           <div className="mb-8 md:mb-0">
