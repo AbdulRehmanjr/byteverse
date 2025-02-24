@@ -1,6 +1,7 @@
-import { Home, HelpCircle, Tag, Bookmark, Users, Building2 } from 'lucide-react';
+import { Home, HelpCircle, Tag, Bookmark, Users, Building2, Gitlab, ClipboardList } from 'lucide-react';
 import { Button } from "~/components/ui/button";
 import Link from 'next/link';
+
 
 const menus = [
     { title: 'Home', icon: Home, href: '/' },
@@ -8,7 +9,13 @@ const menus = [
     { title: 'Tags', icon: Tag, href: '/tags' },
     { title: 'Save', icon: Bookmark, href: '/saved' },
     { title: 'Users', icon: Users, href: '/users' },
-    { title: 'Companies', icon: Building2, href: '/companies' }
+    { title: 'Companies', icon: Building2, href: '/companies' },
+    { title: 'label' , icon:Tag,href:'/label'},
+
+];
+const submenus = [
+    {title : 'LABS' , icon : Gitlab,href :''},
+    {title : 'Discussion', icon: ClipboardList , href: '/clip'}
 ];
 
 export const LandingSideBar = () => {
@@ -29,6 +36,22 @@ export const LandingSideBar = () => {
                         </Link>
                     );
                 })}
+                <div className="flex flex-col gap-2 p-4">
+                {submenus.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                        <Link href={item.href} key={item.title}>
+                            <Button 
+                                variant="ghost" 
+                                className="w-full justify-start gap-2 hover:bg-accent"
+                            >
+                                <Icon className="h-4 w-4" />
+                                <span>{item.title}</span>
+                            </Button>
+                        </Link>
+                    );
+                })}
+            </div>
             </div>
         </aside>
     );
