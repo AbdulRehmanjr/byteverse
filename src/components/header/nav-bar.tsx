@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "~/components/ui/button";
 
 const links = [
-  { title: "About", link: "/pam" },
+  { title: "About", link: "/about" },
   { title: "Products", link: "#" },
   { title: "OverflowAI", link: "#" },
 ];
