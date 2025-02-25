@@ -11,7 +11,7 @@ import {
 import Image from "next/image";
 import { Input } from "~/components/ui/input";
 import { useState } from "react";
-import { EyeIcon, EyeOffIcon, Loader } from "lucide-react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,41 +24,34 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { api } from "~/trpc/react";
 
-const SignUpSchema = z.object({
+const LoginSchema = z.object({
   email: z
-    .string({ required_error: "Email is requied" })
+    .string({ required_error: "Email is required" })
     .email({ message: "Invalid email" }),
   password: z
-    .string({ required_error: "Password is requied" })
+    .string({ required_error: "Password is required" })
     .min(8, { message: "Password must be at least 8 characters long" }),
 });
 
-type FormProps = z.infer<typeof SignUpSchema>;
+type FormProps = z.infer<typeof LoginSchema>;
 
-export const SignUpDialog = () => {
+export const LoginDialog = () => {
   const form = useForm<FormProps>({
-    resolver: zodResolver(SignUpSchema),
+    resolver: zodResolver(LoginSchema),
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  const createUser = api.register.addUser.useMutation({
-    onSuccess: () => {
-      form.reset();
-    }
-  });
-
   const onSubmit = (data: FormProps) => {
-    createUser.mutate({ email: data.email, password: data.password });
+    console.log(data);
   };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="default" type="button">
-          Sign up
+          Log in
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -74,9 +67,9 @@ export const SignUpDialog = () => {
             />
           </div>
           <DialogTitle className="font-heading text-xl">
-            Join ByteVerse
+            Welcome Back to ByteVerse
           </DialogTitle>
-          <DialogDescription className="sr-only">Signup form</DialogDescription>
+          <DialogDescription className="sr-only">Login form</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
@@ -94,7 +87,7 @@ export const SignUpDialog = () => {
                       value={field.value ?? ""}
                     />
                   </FormControl>
-                  <FormDescription>Write your email address</FormDescription>
+                  <FormDescription>Enter your email address</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -109,7 +102,7 @@ export const SignUpDialog = () => {
                     <div className="flex">
                       <Input
                         type={showPassword ? "text" : "password"}
-                        placeholder=""
+                        placeholder="************"
                         {...field}
                         value={field.value ?? ""}
                         className="rounded-r-none border-r-0"
@@ -128,24 +121,13 @@ export const SignUpDialog = () => {
                       </Button>
                     </div>
                   </FormControl>
-                  <FormDescription>Write your password</FormDescription>
+                  <FormDescription>Enter your password</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={createUser.isPending}
-            >
-              {createUser.isPending ? (
-                <>
-                  <Loader className="animate-spin" />
-                  Please wait...
-                </>
-              ) : (
-                "Sign up"
-              )}
+            <Button type="submit" className="w-full">
+              Log in
             </Button>
           </form>
         </Form>
