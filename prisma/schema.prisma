@@ -7,12 +7,13 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post{
-    id  String @id @default(cuid())
-    title String @default("none") 
-    content String @default("none")
-    published Boolean @default(false)
-    createdAt DateTime @default(now())
-    updatedAT DateTime @default(now())
-    
+
+
+
+
+
+model User{
+    userId      String @id @default(cuid())
+    email       String @unique
+    password    String @default("none")
 }

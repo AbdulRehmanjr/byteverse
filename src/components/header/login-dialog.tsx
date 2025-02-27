@@ -11,7 +11,7 @@ import {
 import Image from "next/image";
 import { Input } from "~/components/ui/input";
 import { useState } from "react";
-import { EyeIcon, EyeOffIcon, Loader } from "lucide-react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,7 +24,6 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { api } from "~/trpc/react";
 
 const SignUpSchema = z.object({
   email: z
@@ -35,30 +34,25 @@ const SignUpSchema = z.object({
     .min(8, { message: "Password must be at least 8 characters long" }),
 });
 
-type FormProps = z.infer<typeof SignUpSchema>;
+type FormProps = z.infer<typeof SignUpSchema>
 
-export const SignUpDialog = () => {
+export const LoginDialog = () => {
   const form = useForm<FormProps>({
     resolver: zodResolver(SignUpSchema),
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  const createUser = api.register.addUser.useMutation({
-    onSuccess: () => {
-      form.reset();
-    }
-  });
+  const onSubmit = (data:FormProps)=>{
 
-  const onSubmit = (data: FormProps) => {
-    createUser.mutate({ email: data.email, password: data.password });
-  };
+    console.log(data)
+  }
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="default" type="button">
-          Sign up
+        <Button variant="outline" type="button">
+         Log in
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -109,7 +103,7 @@ export const SignUpDialog = () => {
                     <div className="flex">
                       <Input
                         type={showPassword ? "text" : "password"}
-                        placeholder=""
+                        placeholder="************"
                         {...field}
                         value={field.value ?? ""}
                         className="rounded-r-none border-r-0"
@@ -133,20 +127,9 @@ export const SignUpDialog = () => {
                 </FormItem>
               )}
             />
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={createUser.isPending}
-            >
-              {createUser.isPending ? (
-                <>
-                  <Loader className="animate-spin" />
-                  Please wait...
-                </>
-              ) : (
-                "Sign up"
-              )}
-            </Button>
+            <Button type="submit" className="w-full">
+              Login
+               </Button>
           </form>
         </Form>
       </DialogContent>

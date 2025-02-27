@@ -3,6 +3,7 @@ import { NavBar } from "~/components/header/nav-bar";
 import { Seacrh } from "~/components/header/search";
 import { Button } from "~/components/ui/button";
 import { SignUpDialog } from "~/components/header/signup-dialog";
+import { LoginDialog } from "~/components/header/login-dialog";
 
 export const Header = () => {
   return (
@@ -22,10 +23,10 @@ export const Header = () => {
         </div>
         <NavBar />
         <Seacrh />
-        <Button variant="outline" type="button">
-          Log in
-        </Button>
+        <LoginDialog />
+        
         <SignUpDialog />
+        
       </div>
     </header>
   );

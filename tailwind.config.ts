@@ -1,16 +1,6 @@
 import animate from "tailwindcss-animate";
 
-import { type Config } from "tailwindcss";
-<<<<<<< HEAD
-import { fontFamily } from "tailwindcss/defaultTheme";
-
-
-
-
-
-=======
-import animate from "tailwindcss-animate"
->>>>>>> 42bdb0fbf686d0f15a15528a9c3bb8631bc76a60
+import { type Config } from "tailwind";
 
 export default {
 	darkMode: ["class"],
