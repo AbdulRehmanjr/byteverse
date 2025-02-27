@@ -7,6 +7,7 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+<<<<<<< HEAD
 
 
 
@@ -17,3 +18,21 @@ model User{
     email       String @unique
     password    String @default("none")
 }
+=======
+model User {
+    userId   String     @id @default(cuid())
+    email    String     @unique
+    password String
+    Question Question[]
+}
+
+model Question {
+    questionId String   @id @default(cuid())
+    title      String   @default("none")
+    content    String   @default("none") @db.Text
+    tags       String[] @default([])
+    userId     String
+
+    user User @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+}
+>>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3

@@ -1,11 +1,18 @@
+"use client";
+
 import Image from "next/image";
 import { NavBar } from "~/components/header/nav-bar";
 import { Seacrh } from "~/components/header/search";
-import { Button } from "~/components/ui/button";
 import { SignUpDialog } from "~/components/header/signup-dialog";
 import { LoginDialog } from "~/components/header/login-dialog";
+<<<<<<< HEAD
+=======
+import { useSession } from "next-auth/react";
+import { UserAccountDropdown } from "~/components/header/sign-out";
+>>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
 
 export const Header = () => {
+  const session = useSession();
   return (
     <header className="bg-gray-100 px-4 py-2">
       <div className="mx-auto flex max-w-7xl items-center gap-4">
@@ -23,10 +30,21 @@ export const Header = () => {
         </div>
         <NavBar />
         <Seacrh />
+<<<<<<< HEAD
         <LoginDialog />
         
         <SignUpDialog />
         
+=======
+        {session.data?.user ? (
+          <UserAccountDropdown/>
+        ) : (
+          <>
+            <LoginDialog />
+            <SignUpDialog />
+          </>
+        )}
+>>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
       </div>
     </header>
   );

@@ -11,7 +11,11 @@ import {
 import Image from "next/image";
 import { Input } from "~/components/ui/input";
 import { useState } from "react";
+<<<<<<< HEAD
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+=======
+import { AlertCircle, EyeIcon, EyeOffIcon, Loader } from "lucide-react";
+>>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,8 +28,15 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
+<<<<<<< HEAD
 
 const SignUpSchema = z.object({
+=======
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { signIn } from "next-auth/react";
+
+const LoginSchema = z.object({
+>>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
   email: z
     .string({ required_error: "Email is requied" })
     .email({ message: "Invalid email" }),
@@ -33,6 +44,7 @@ const SignUpSchema = z.object({
     .string({ required_error: "Password is requied" })
     .min(8, { message: "Password must be at least 8 characters long" }),
 });
+<<<<<<< HEAD
 
 type FormProps = z.infer<typeof SignUpSchema>
 
@@ -47,12 +59,43 @@ export const LoginDialog = () => {
 
     console.log(data)
   }
+=======
+type FormProps = z.infer<typeof LoginSchema>;
+
+export const LoginDialog = () => {
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [alert, setAlert] = useState<boolean>(false);
+
+  const form = useForm<FormProps>({
+    resolver: zodResolver(LoginSchema),
+  });
+
+  const onSubmit = async (values: FormProps) => {
+    try {
+      setAlert(false);
+      setSubmitting(true);
+      const signInData = await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+      });
+      if (signInData?.error) setAlert(true);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+>>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" type="button">
+<<<<<<< HEAD
          Log in
+=======
+          Login
+>>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -68,12 +111,30 @@ export const LoginDialog = () => {
             />
           </div>
           <DialogTitle className="font-heading text-xl">
+<<<<<<< HEAD
             Join ByteVerse
           </DialogTitle>
           <DialogDescription className="sr-only">Signup form</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
+=======
+            Login ByteVerse
+          </DialogTitle>
+          <DialogDescription className="sr-only">Login form</DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
+            {alert && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>
+                  Email or Password is incorrect
+                </AlertDescription>
+              </Alert>
+            )}
+>>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
             <FormField
               control={form.control}
               name="email"
@@ -127,9 +188,22 @@ export const LoginDialog = () => {
                 </FormItem>
               )}
             />
+<<<<<<< HEAD
             <Button type="submit" className="w-full">
               Login
                </Button>
+=======
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? (
+                <>
+                  <Loader className="animate-spin" />
+                  Please wait...
+                </>
+              ) : (
+                "Login"
+              )}
+            </Button>
+>>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
           </form>
         </Form>
       </DialogContent>

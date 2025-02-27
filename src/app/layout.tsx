@@ -8,6 +8,7 @@ import { Footer } from "~/components/footer/footer";
 import { Inter } from 'next/font/google'
 import { Space_Grotesk } from 'next/font/google'
 import { JetBrains_Mono } from 'next/font/google'
+import { Toaster } from "~/components/ui/sonner";
 
 export const textFont = Inter({
   subsets: ['latin'],
@@ -45,6 +46,7 @@ export default function RootLayout({
             <main className="col-span-10 ">{children}</main>
           </Center>
           <Footer/>
+          <Toaster />
         </Providers>
       </body>
     </html>
