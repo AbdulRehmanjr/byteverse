@@ -11,7 +11,7 @@ import {
 import Image from "next/image";
 import { Input } from "~/components/ui/input";
 import { useState } from "react";
-import { EyeIcon, EyeOffIcon, Loader } from "lucide-react";
+import { AlertCircle, EyeIcon, EyeOffIcon, Loader } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,9 +24,10 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { api } from "~/trpc/react";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { signIn } from "next-auth/react";
 
-const SignUpSchema = z.object({
+const LoginSchema = z.object({
   email: z
     .string({ required_error: "Email is requied" })
     .email({ message: "Invalid email" }),
@@ -34,31 +35,37 @@ const SignUpSchema = z.object({
     .string({ required_error: "Password is requied" })
     .min(8, { message: "Password must be at least 8 characters long" }),
 });
+type FormProps = z.infer<typeof LoginSchema>;
 
-type FormProps = z.infer<typeof SignUpSchema>;
-
-export const SignUpDialog = () => {
-  const form = useForm<FormProps>({
-    resolver: zodResolver(SignUpSchema),
-  });
-
+export const LoginDialog = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [alert, setAlert] = useState<boolean>(false);
 
-  const createUser = api.register.addUser.useMutation({
-    onSuccess: () => {
-      form.reset();
-    }
+  const form = useForm<FormProps>({
+    resolver: zodResolver(LoginSchema),
   });
 
-  const onSubmit = (data: FormProps) => {
-    createUser.mutate({ email: data.email, password: data.password });
+  const onSubmit = async (values: FormProps) => {
+    try {
+      setAlert(false);
+      setSubmitting(true);
+      const signInData = await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+      });
+      if (signInData?.error) setAlert(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="default" type="button">
-          Sign up
+        <Button variant="outline" type="button">
+          Login
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -74,12 +81,21 @@ export const SignUpDialog = () => {
             />
           </div>
           <DialogTitle className="font-heading text-xl">
-            Join ByteVerse
+            Login ByteVerse
           </DialogTitle>
-          <DialogDescription className="sr-only">Signup form</DialogDescription>
+          <DialogDescription className="sr-only">Login form</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
+            {alert && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>
+                  Email or Password is incorrect
+                </AlertDescription>
+              </Alert>
+            )}
             <FormField
               control={form.control}
               name="email"
@@ -133,18 +149,14 @@ export const SignUpDialog = () => {
                 </FormItem>
               )}
             />
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={createUser.isPending}
-            >
-              {createUser.isPending ? (
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? (
                 <>
                   <Loader className="animate-spin" />
                   Please wait...
                 </>
               ) : (
-                "Sign up"
+                "Login"
               )}
             </Button>
           </form>

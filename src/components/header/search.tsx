@@ -8,13 +8,10 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
 import { Button } from "~/components/ui/button";
-import { api } from "~/trpc/react";
 
 const formSchema = z.object({
   title: z.string({ required_error: "Title is required." }),
@@ -27,20 +24,16 @@ export const Seacrh = () => {
   const form = useForm<FormProps>({
     resolver: zodResolver(formSchema),
   });
-  const createTask = api.task.createTask.useMutation({
-    onSuccess: () => {
-      form.reset();
-    },
-  });
-  const formSubmission = async (data: FormProps) => {
-    createTask.mutate({ title: data.title, description: data.description });
+
+  const formSubmission =  (data: FormProps) => {
+    console.log(data);
   };
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(formSubmission)}
-        className="flex w-full gap-2 rounded-md border-2  bg-gray-50 p-4 "
+        className="flex w-full gap-2 rounded-md border-2 bg-gray-50 p-4"
       >
         <FormField
           control={form.control}

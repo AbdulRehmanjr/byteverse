@@ -1,11 +1,11 @@
-import { postRouter } from "~/server/api/routers/post";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
-import { taskRouter } from "~/server/api/routers/task";
+import { registerRouter } from "~/server/api/routers/register";
+import { questionRouter } from "~/server/api/routers/question";
 
 
 export const appRouter = createTRPCRouter({
-  post: postRouter,
-  task:taskRouter,
+  register:registerRouter,
+  question:questionRouter,
 });
 
 export type AppRouter = typeof appRouter;
