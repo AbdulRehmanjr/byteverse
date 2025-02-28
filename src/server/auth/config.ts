@@ -1,5 +1,8 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import { compare } from "bcrypt";
+import { z } from "zod";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 
 import { db } from "~/server/db";
 
@@ -31,14 +34,83 @@ declare module "next-auth" {
  */
 export const authConfig = {
   providers: [
+    Credentials({
+      name: "credentials",
+      credentials :{
+        email:{
+          label:"Email",
+          type:"email"
+        },
+        password:{
+          label:"Password",
+          type:"password"
+        },
+      },
+      async authorize(credentials) {
+        const parsedCredentials = z
+          .object({
+            email: z.string().email(),
+            password: z.string().min(6)
+          })
+          .safeParse(credentials);
+
+        if (!parsedCredentials.success) {
+          return null;
+        }
+
+        const { email, password } = parsedCredentials.data;
+
+        // Find user in database
+        const user = await db.user.findUnique({
+          where: { email },
+        });
+
+        if (!user) {
+          return null;
+        }
+
+        // Verify password using your password utility
+        // hash = hash 
+        const isValidPassword = await compare(password, user.password);
+
+        if (!isValidPassword) {
+          return null;
+        }
+
+        return {
+          id: user.userId,
+          email: user.email,
+        };
+      },
+    }),
   ],
+  session: { strategy: "jwt" },
   callbacks: {
-    session: ({ session, user }) => ({
+    jwt: ({ token, user }) => {
+      if (user) {
+        token.id = user.id;
+        // Add any other user properties you want to store in the token
+      }
+      return token;
+    },
+    session: ({ session, token }) => ({
       ...session,
       user: {
         ...session.user,
-        id: user.id,
+        id: token.id as string,
+        // Add other properties from token if needed
       },
     }),
   },
-} satisfies NextAuthConfig;
+  pages: { signIn: '/' },
+} satisfies NextAuthConfig;
+//   callbacks: {
+//     session: ({ session, user }) => ({
+//       ...session,
+//       user: {
+//         ...session.user,
+//         id: user.id,
+//       },
+//     }),
+//   },
+// } satisfies NextAuthConfig;
