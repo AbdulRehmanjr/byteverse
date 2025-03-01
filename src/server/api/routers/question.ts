@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { TRPCClientError } from "@trpc/client";
 import { TRPCError } from "@trpc/server";
 
@@ -21,11 +21,10 @@ export const questionRouter = createTRPCRouter({
                         title: input.title,
                         content: input.details,
                         tags: input.tags,
-                        userId: ctx.session.user.id 
+                        userId: ctx.session.user.id
                     }
                 })
             } catch (error) {
-
                 if (error instanceof TRPCClientError) {
                     console.error(error.message)
                     throw new TRPCError({
@@ -40,4 +39,25 @@ export const questionRouter = createTRPCRouter({
                 })
             }
         }),
+
+
+    getAllQuestions: publicProcedure
+        .query(async ({ ctx }) => {
+            try {
+                return await ctx.db.question.findMany()
+            } catch (error) {
+                if (error instanceof TRPCClientError) {
+                    console.error(error.message)
+                    throw new TRPCError({
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: error.message
+                    })
+                }
+                console.error(error)
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: 'Something went wrong'
+                })
+            }
+        })
 })
