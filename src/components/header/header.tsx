@@ -5,11 +5,8 @@ import { NavBar } from "~/components/header/nav-bar";
 import { Seacrh } from "~/components/header/search";
 import { SignUpDialog } from "~/components/header/signup-dialog";
 import { LoginDialog } from "~/components/header/login-dialog";
-<<<<<<< HEAD
-=======
 import { useSession } from "next-auth/react";
 import { UserAccountDropdown } from "~/components/header/sign-out";
->>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
 
 export const Header = () => {
   const session = useSession();
@@ -30,12 +27,6 @@ export const Header = () => {
         </div>
         <NavBar />
         <Seacrh />
-<<<<<<< HEAD
-        <LoginDialog />
-        
-        <SignUpDialog />
-        
-=======
         {session.data?.user ? (
           <UserAccountDropdown/>
         ) : (
@@ -44,7 +35,6 @@ export const Header = () => {
             <SignUpDialog />
           </>
         )}
->>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
       </div>
     </header>
   );

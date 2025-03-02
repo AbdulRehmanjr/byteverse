@@ -1,10 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { hash } from 'bcrypt'
-<<<<<<< HEAD
-=======
-
->>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
 export const registerRouter = createTRPCRouter({
 
     addUser: publicProcedure
@@ -25,9 +21,5 @@ export const registerRouter = createTRPCRouter({
                 console.error(error)
                 throw new Error("Something went wrong")
             }
-<<<<<<< HEAD
-        }),
-=======
         }),
->>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
 })

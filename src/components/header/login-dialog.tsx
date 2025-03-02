@@ -11,11 +11,7 @@ import {
 import Image from "next/image";
 import { Input } from "~/components/ui/input";
 import { useState } from "react";
-<<<<<<< HEAD
-import { EyeIcon, EyeOffIcon } from "lucide-react";
-=======
 import { AlertCircle, EyeIcon, EyeOffIcon, Loader } from "lucide-react";
->>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,15 +24,10 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-<<<<<<< HEAD
-
-const SignUpSchema = z.object({
-=======
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { signIn } from "next-auth/react";
 
 const LoginSchema = z.object({
->>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
   email: z
     .string({ required_error: "Email is requied" })
     .email({ message: "Invalid email" }),
@@ -44,22 +35,6 @@ const LoginSchema = z.object({
     .string({ required_error: "Password is requied" })
     .min(8, { message: "Password must be at least 8 characters long" }),
 });
-<<<<<<< HEAD
-
-type FormProps = z.infer<typeof SignUpSchema>
-
-export const LoginDialog = () => {
-  const form = useForm<FormProps>({
-    resolver: zodResolver(SignUpSchema),
-  });
-
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-
-  const onSubmit = (data:FormProps)=>{
-
-    console.log(data)
-  }
-=======
 type FormProps = z.infer<typeof LoginSchema>;
 
 export const LoginDialog = () => {
@@ -85,17 +60,12 @@ export const LoginDialog = () => {
       setSubmitting(false);
     }
   };
->>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" type="button">
-<<<<<<< HEAD
-         Log in
-=======
           Login
->>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -111,14 +81,6 @@ export const LoginDialog = () => {
             />
           </div>
           <DialogTitle className="font-heading text-xl">
-<<<<<<< HEAD
-            Join ByteVerse
-          </DialogTitle>
-          <DialogDescription className="sr-only">Signup form</DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
-=======
             Login ByteVerse
           </DialogTitle>
           <DialogDescription className="sr-only">Login form</DialogDescription>
@@ -134,7 +96,6 @@ export const LoginDialog = () => {
                 </AlertDescription>
               </Alert>
             )}
->>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
             <FormField
               control={form.control}
               name="email"
@@ -188,11 +149,6 @@ export const LoginDialog = () => {
                 </FormItem>
               )}
             />
-<<<<<<< HEAD
-            <Button type="submit" className="w-full">
-              Login
-               </Button>
-=======
             <Button type="submit" className="w-full" disabled={submitting}>
               {submitting ? (
                 <>
@@ -203,7 +159,6 @@ export const LoginDialog = () => {
                 "Login"
               )}
             </Button>
->>>>>>> ceb7d077fb955143dc32fe9363980749b35cc9f3
           </form>
         </Form>
       </DialogContent>
