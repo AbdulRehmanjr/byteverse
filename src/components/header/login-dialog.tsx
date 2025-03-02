@@ -26,6 +26,7 @@ import {
 } from "~/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { signIn } from "next-auth/react";
+import { useLoginDialog } from "~/hooks/use-login";
 
 const LoginSchema = z.object({
   email: z
@@ -41,6 +42,7 @@ export const LoginDialog = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [alert, setAlert] = useState<boolean>(false);
+  const { isLoginOpen, setIsLoginOpen } = useLoginDialog();
 
   const form = useForm<FormProps>({
     resolver: zodResolver(LoginSchema),
@@ -55,14 +57,18 @@ export const LoginDialog = () => {
         password: values.password,
         redirect: false,
       });
-      if (signInData?.error) setAlert(true);
+      if (signInData?.error) {
+        setAlert(true);
+      } else {
+        setIsLoginOpen(false);
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Dialog>
+    <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" type="button">
           Login
