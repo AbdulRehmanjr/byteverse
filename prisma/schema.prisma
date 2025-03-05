@@ -13,6 +13,7 @@ model User {
     password     String
     Question     Question[]
     QuestionLike QuestionLike[]
+    Answer       Answer[]
 }
 
 model QuestionLike {
@@ -35,7 +36,19 @@ model Question {
     tags         String[]       @default([])
     userId       String
     createdAt    DateTime       @default(now())
-    updatedAt    DateTime       @default(now()) @updatedAt
+    updatedAt    DateTime       @updatedAt
     user         User           @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
     QuestionLike QuestionLike[]
+    Answer       Answer[]
+}
+
+model Answer {
+    answerId   String   @id @default(cuid())
+    questionId String
+    userId     String
+    content    String   @default("none") @db.Text
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+    user       User     @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+    question   Question @relation(fields: [questionId], references: [questionId], onDelete: Cascade, onUpdate: Cascade)
 }
