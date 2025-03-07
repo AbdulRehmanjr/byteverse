@@ -1,5 +1,13 @@
-
-import { ArrowLeft, MessageSquare, Tag, User } from "lucide-react";
+import {
+  ArrowLeft,
+  Tag,
+  MessageCircle,
+  Clock,
+  Heart,
+  Eye,
+  Share2,
+  Bookmark,
+} from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -12,6 +20,15 @@ import { parseHtml } from "~/lib/utils";
 import { api } from "~/trpc/server";
 import Link from "next/link";
 import dayjs from "dayjs";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Separator } from "~/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
+import { ResponseList } from "~/components/questions/answer/answer-list";
 
 type PageProps = {
   params: Promise<{ questionId: string }>;
@@ -24,54 +41,112 @@ export default async function QuestionsDetailPage({ params }: PageProps) {
   });
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-6">
-      <div className="mb-6">
-        <Button variant="ghost" size="sm" asChild className="mb-4">
+    <section className="mx-auto max-w-4xl px-4 py-8">
+      <div className="mb-8">
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="group mb-6 transition-all duration-300 hover:-translate-x-1"
+        >
           <Link
             href="/questions"
-            className="flex items-center gap-1 text-muted-foreground"
+            className="flex items-center gap-2 text-muted-foreground"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
             Back to Questions
           </Link>
         </Button>
 
-        <Card className="overflow-hidden">
-          <CardHeader className="border-b bg-muted/20 pb-4">
+        <Card className="overflow-hidden border-l-4 border-l-primary/50 shadow-lg">
+          <CardHeader className="border-b bg-gray-50 pb-4 dark:bg-gray-900">
             <div className="flex flex-col gap-4">
               <div className="flex items-start justify-between">
-                <h1 className="font-heading text-2xl font-bold text-primary">
+                <h1 className="font-heading text-3xl font-bold text-primary">
                   {question.title}
                 </h1>
+                <div className="flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full hover:bg-primary/10"
+                        >
+                          <Bookmark className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Save for later</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full hover:bg-primary/10"
+                        >
+                          <Share2 className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Share</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
+
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-7 w-7 ring-2 ring-primary/30 ring-offset-1">
+                    <AvatarImage
+                      src={`https://avatar.vercel.sh/${question.user.email}.png`}
+                    />
+                    <AvatarFallback>
+                      {question.user.email.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium text-primary">
+                    {question.user.email.split("@")[0]}
+                  </span>
+                </div>
+
+                <Separator orientation="vertical" className="h-4" />
+
                 <span className="flex items-center gap-1">
-                  <User className="h-4 w-4" />
-                  {question.user.email}
+                  <Clock className="h-4 w-4" />
+                  {dayjs(question.createdAt).format("DD.MM.YYYY")}
                 </span>
-                <span>
-                  Posted on{" "}
-                  {dayjs(question.createdAt).format('DD.MM.YYYY')}
-                </span>
+
+                <Separator orientation="vertical" className="h-4" />
+
                 <span className="flex items-center gap-1">
-                  <MessageSquare className="h-4 w-4" />
-                  {question._count.QuestionLike??0} likes
+                  <Heart className="h-4 w-4 text-primary" />
+                  {question._count.QuestionLike ?? 0} likes
+                </span>
+
+                <Separator orientation="vertical" className="h-4" />
+
+                <span className="flex items-center gap-1">
+                  <Eye className="h-4 w-4" />
+                  {Math.floor(Math.random() * 200) + 10} views
                 </span>
               </div>
             </div>
           </CardHeader>
 
-          <CardContent className="pt-6">
-            <div className="prose max-w-none">
+          <CardContent className="pb-6 pt-8">
+            <div className="prose prose-lg dark:prose-invert prose-headings:text-primary prose-a:text-primary max-w-none">
               {parseHtml(question.content)}
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-2">
+            <div className="mt-8 flex flex-wrap gap-2">
               {question.tags.map((tag, index) => (
                 <Badge
                   key={index}
-                  variant="secondary"
-                  className="flex items-center"
+                  variant="default"
+                  className="flex items-center bg-primary shadow-sm transition-all duration-300 hover:bg-primary/90"
                 >
                   <Tag className="mr-1 h-3 w-3" />
                   {tag}
@@ -80,27 +155,44 @@ export default async function QuestionsDetailPage({ params }: PageProps) {
             </div>
           </CardContent>
 
-          <CardFooter className="flex justify-between border-t bg-muted/10 py-4">
-            {/* <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
+          <CardFooter className="flex justify-between border-t bg-gray-50 py-4 dark:bg-gray-900">
+            <div className="flex items-center gap-2">
+              <Avatar className="h-10 w-10 ring-2 ring-primary/20 ring-offset-2">
+                <AvatarImage
+                  src={`https://avatar.vercel.sh/${question.user.email}.png`}
+                />
                 <AvatarFallback>
-                  {question.user?.email.charAt(0).toUpperCase() || "A"}
+                  {question.user.email.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="text-sm">
-                <div className="font-medium">
-                  {question.user?.email.split("@")[0] || "Anonymous"}
+                <div className="font-medium text-gray-950 dark:text-gray-100">
+                  {question.user.email.split("@")[0]}
                 </div>
-                <div className="text-muted-foreground">Member</div>
+                <div className="text-muted-foreground">
+                  Member since{" "}
+                  {dayjs()
+                    .subtract(Math.floor(Math.random() * 365) + 1, "days")
+                    .format("MMM YYYY")}
+                </div>
               </div>
-            </div> */}
+            </div>
 
-            {/* <div className="flex items-center gap-4">
-              <LikeButton likes={likeCount} questionId={question.questionId} />
-            </div> */}
+            <div className="flex items-center gap-4">
+              <Button variant="outline" className="gap-2 hover:bg-primary/5">
+                <Heart className="h-4 w-4 text-primary" />
+                <span>{question._count.QuestionLike ?? 0}</span>
+              </Button>
+              <Button variant="outline" className="gap-2 hover:bg-primary/5">
+                <MessageCircle className="h-4 w-4" />
+                Reply
+              </Button>
+            </div>
           </CardFooter>
         </Card>
       </div>
+
+      <ResponseList questionId={paramProps.questionId} />
     </section>
   );
 }

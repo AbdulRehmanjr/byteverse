@@ -9,6 +9,7 @@ datasource db {
 
 model User {
     userId       String         @id @default(cuid())
+    userName     String         @default("none")
     email        String         @unique
     password     String
     Question     Question[]
@@ -46,6 +47,7 @@ model Answer {
     answerId   String   @id @default(cuid())
     questionId String
     userId     String
+    vote       Int      @default(0)
     content    String   @default("none") @db.Text
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt

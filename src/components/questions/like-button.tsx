@@ -9,22 +9,20 @@ import { api } from "~/trpc/react";
 
 type ComponentProps = {
   likes: number;
+  liked:boolean
   questionId: string;
 };
 
-export const LikeButton = ({ likes, questionId }: ComponentProps) => {
+export const LikeButton = ({ likes, liked,questionId }: ComponentProps) => {
   const session = useSession();
   const utils = api.useUtils();
   const [count, setCount] = useState<number>(likes);
   const [isLike, setLike] = useState<boolean>(false);
   const { setIsLoginOpen } = useLoginDialog();
-  const [liked] = api.question.checklikeQuestion.useSuspenseQuery({
-    questionId: questionId,
-  });
 
   const makeLike = api.question.likeQuestion.useMutation({
     onSuccess: () => {
-      void utils.question.checklikeQuestion.refetch({ questionId });
+      void utils.question.getLikedQuestionByMe.refetch();
     },
     onError: () => {
       setLike(false);

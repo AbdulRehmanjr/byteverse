@@ -52,9 +52,9 @@ export const questionRouter = createTRPCRouter({
                                 QuestionLike: true,
                             },
                         },
-                        user : {
-                            select :{
-                                email : true
+                        user: {
+                            select: {
+                                email: true
                             }
                         }
                     }
@@ -74,6 +74,7 @@ export const questionRouter = createTRPCRouter({
                 });
             }
         }),
+
 
     getAllQuestions: publicProcedure
         .input(
@@ -162,20 +163,18 @@ export const questionRouter = createTRPCRouter({
             }
         }),
 
-    checklikeQuestion: protectedProcedure
-        .input(z.object({ questionId: z.string() }))
-        .query(async ({ ctx, input }) => {
+    getLikedQuestionByMe: publicProcedure
+        .query(async ({ ctx }) => {
             try {
-                const data = await ctx.db.questionLike.findUnique({
+                return await ctx.db.questionLike.findMany({
                     where: {
-                        userId_questionId: {
-                            questionId: input.questionId,
-                            userId: ctx.session.user.id
-                        }
+                        userId: ctx.session?.user.id ?? ''
+                    },
+                    select: {
+                        questionId: true
                     }
                 })
-                if (data) return true
-                return false
+
             } catch (error) {
                 if (error instanceof TRPCClientError) {
                     console.error(error.message);
@@ -191,5 +190,4 @@ export const questionRouter = createTRPCRouter({
                 });
             }
         }),
-
 })
