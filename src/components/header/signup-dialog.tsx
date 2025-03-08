@@ -25,6 +25,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { api } from "~/trpc/react";
+import { toast } from "sonner";
 
 const SignUpSchema = z.object({
   email: z
@@ -33,25 +34,30 @@ const SignUpSchema = z.object({
   password: z
     .string({ required_error: "Password is requied" })
     .min(8, { message: "Password must be at least 8 characters long" }),
+  userName : z.string({required_error:"Field is required."})
 });
 
 type FormProps = z.infer<typeof SignUpSchema>;
 
 export const SignUpDialog = () => {
+
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const form = useForm<FormProps>({
     resolver: zodResolver(SignUpSchema),
   });
 
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-
   const createUser = api.register.addUser.useMutation({
     onSuccess: () => {
       form.reset();
+      toast.success("Signup succesfully")
+    },
+    onError: ()=>{
+      toast.error("Signup failed")
     }
   });
 
   const onSubmit = (data: FormProps) => {
-    createUser.mutate({ email: data.email, password: data.password });
+    createUser.mutate({ email: data.email, password: data.password ,userName:data.userName});
   };
 
   return (
@@ -80,6 +86,25 @@ export const SignUpDialog = () => {
         </DialogHeader>
         <Form {...form}>
           <form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
+          <FormField
+              control={form.control}
+              name="userName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>User name</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder="spydev"
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormDescription>Write your username</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="email"

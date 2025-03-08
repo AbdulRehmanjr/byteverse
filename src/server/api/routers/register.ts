@@ -6,13 +6,15 @@ export const registerRouter = createTRPCRouter({
     addUser: publicProcedure
         .input(z.object({
             email: z.string(),
-            password: z.string()
+            password: z.string(),
+            userName: z.string()
         }))
         .mutation(async ({ ctx, input }) => {
             try {
                 const hashPassword = await hash(input.password, 10)
                 await ctx.db.user.create({
                     data: {
+                        userName: input.userName,
                         email: input.email,
                         password: hashPassword
                     }

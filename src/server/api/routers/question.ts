@@ -40,24 +40,155 @@ export const questionRouter = createTRPCRouter({
             }
         }),
 
-
-    getAllQuestions: publicProcedure
-        .query(async ({ ctx }) => {
+    getQuestionById: publicProcedure
+        .input(z.object({ questionId: z.string() }))
+        .query(async ({ ctx, input }) => {
             try {
-                return await ctx.db.question.findMany()
+                return await ctx.db.question.findUniqueOrThrow({
+                    where: { questionId: input.questionId },
+                    include: {
+                        _count: {
+                            select: {
+                                QuestionLike: true,
+                            },
+                        },
+                        user: {
+                            select: {
+                                email: true
+                            }
+                        }
+                    }
+                })
             } catch (error) {
                 if (error instanceof TRPCClientError) {
-                    console.error(error.message)
+                    console.error(error.message);
                     throw new TRPCError({
                         code: "INTERNAL_SERVER_ERROR",
                         message: error.message
-                    })
+                    });
                 }
-                console.error(error)
+                console.error(error);
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     message: 'Something went wrong'
-                })
+                });
             }
-        })
+        }),
+
+
+    getAllQuestions: publicProcedure
+        .input(
+            z.object({
+                limit: z.number().min(1).max(100).default(10),
+                skip: z.number().optional(),
+            })
+        )
+        .query(async ({ ctx, input }) => {
+            const { limit, skip } = input;
+
+            try {
+                const items = await ctx.db.question.findMany({
+                    take: limit,
+                    skip: skip ?? 0,
+                    orderBy: { createdAt: 'desc' },
+                    include: {
+                        _count: {
+                            select: {
+                                QuestionLike: true,
+                                Answer:true,
+                            },
+                        },
+                    },
+                });
+
+                const transformedItems = items.map((item) => ({
+                    ...item,
+                    likeCount: item._count.QuestionLike,
+                    replies: item._count.Answer,
+                }));
+
+                return {
+                    items: transformedItems,
+                };
+            } catch (error) {
+                if (error instanceof TRPCClientError) {
+                    console.error(error.message);
+                    throw new TRPCError({
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: error.message
+                    });
+                }
+                console.error(error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: 'Something went wrong'
+                });
+            }
+        }),
+
+    getQuestionCount: publicProcedure.query(async ({ ctx }) => {
+        try {
+            return await ctx.db.question.count();
+        } catch (error) {
+            console.error(error);
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: 'Failed to get question count'
+            });
+        }
+    }),
+
+    likeQuestion: protectedProcedure
+        .input(z.object({ questionId: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            try {
+                await ctx.db.questionLike.create({
+                    data: {
+                        questionId: input.questionId,
+                        userId: ctx.session.user.id
+                    }
+                })
+            } catch (error) {
+                if (error instanceof TRPCClientError) {
+                    console.error(error.message);
+                    throw new TRPCError({
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: error.message
+                    });
+                }
+                console.error(error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: 'Something went wrong'
+                });
+            }
+        }),
+
+    getLikedQuestionByMe: publicProcedure
+        .query(async ({ ctx }) => {
+            try {
+                return await ctx.db.questionLike.findMany({
+                    where: {
+                        userId: ctx.session?.user.id ?? ''
+                    },
+                    select: {
+                        questionId: true
+                    }
+                })
+
+            } catch (error) {
+                if (error instanceof TRPCClientError) {
+                    console.error(error.message);
+                    throw new TRPCError({
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: error.message
+                    });
+                }
+                console.error(error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: 'Something went wrong'
+                });
+            }
+        }),
 })

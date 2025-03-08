@@ -76,9 +76,30 @@ export default {
 						opacity: '0'
 					},
 				},
+				gradient: {
+					'0%, 100%': {
+						'background-position': '0% 50%'
+					},
+					'50%': {
+						'background-position': '100% 50%'
+					},
+				},
+				fadeIn: {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					},
+				}
 			},
 			animation: {
 				"slide-up": "slideUp 6s linear infinite",
+				'spin-slow': 'spin 3s linear infinite reverse',
+				'gradient': 'gradient 8s ease infinite',
+				'fade-in': 'fadeIn 0.8s ease-in forwards',
 			},
 		}
 	},

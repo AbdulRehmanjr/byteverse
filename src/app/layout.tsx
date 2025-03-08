@@ -1,3 +1,4 @@
+import 'react-quill-new/dist/quill.snow.css';
 import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { Providers } from "~/app/provider";
