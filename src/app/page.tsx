@@ -6,12 +6,16 @@ import { Noor } from "~/components/landing/noor";
 
 
 
+
+
   export default  function  HomePage() {
   return (
     <>
       <LandingCards />
       <Spydev/>
       <Noor />
+      
+     
      
 
     
