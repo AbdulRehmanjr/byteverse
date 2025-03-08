@@ -160,7 +160,7 @@ export const QuestionList = () => {
                     className="gap-1 hover:bg-primary/10 hover:text-primary"
                   >
                     <MessageCircle className="h-4 w-4" />
-                    <span>{Math.floor(Math.random() * 10)} replies</span>
+                    <span>{question._count.Answer ?? 0} replies</span>
                   </Button>
                 </div>
 

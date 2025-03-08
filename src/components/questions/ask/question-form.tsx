@@ -216,7 +216,7 @@ export const AskQuestionForm = () => {
                           value={field.value}
                           onChange={handleEditorChange}
                           placeholder="Describe your problem in detail..."
-                          className="min-h-[200px] bg-white"
+                          className="h-[300px] bg-white"
                         />
                       </div>
                     )}

@@ -5,8 +5,6 @@ import {
   Clock,
   Heart,
   Eye,
-  Share2,
-  Bookmark,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
@@ -29,6 +27,8 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { ResponseList } from "~/components/questions/answer/answer-list";
+import { ShareButton } from "~/components/questions/share-button";
+import { BookmarkButton } from "~/components/questions/bookmark-question";
 
 type PageProps = {
   params: Promise<{ questionId: string }>;
@@ -69,13 +69,7 @@ export default async function QuestionsDetailPage({ params }: PageProps) {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 rounded-full hover:bg-primary/10"
-                        >
-                          <Bookmark className="h-4 w-4 text-muted-foreground" />
-                        </Button>
+                        <BookmarkButton questionId={question.questionId}/>
                       </TooltipTrigger>
                       <TooltipContent>Save for later</TooltipContent>
                     </Tooltip>
@@ -83,13 +77,7 @@ export default async function QuestionsDetailPage({ params }: PageProps) {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 rounded-full hover:bg-primary/10"
-                        >
-                          <Share2 className="h-4 w-4 text-muted-foreground" />
-                        </Button>
+                        <ShareButton questionId={paramProps.questionId} />
                       </TooltipTrigger>
                       <TooltipContent>Share</TooltipContent>
                     </Tooltip>

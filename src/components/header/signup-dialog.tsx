@@ -25,6 +25,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { api } from "~/trpc/react";
+import { toast } from "sonner";
 
 const SignUpSchema = z.object({
   email: z
@@ -48,6 +49,10 @@ export const SignUpDialog = () => {
   const createUser = api.register.addUser.useMutation({
     onSuccess: () => {
       form.reset();
+      toast.success("Signup succesfully")
+    },
+    onError: ()=>{
+      toast.error("Signup failed")
     }
   });
 

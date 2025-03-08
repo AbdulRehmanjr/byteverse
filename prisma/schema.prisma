@@ -15,6 +15,7 @@ model User {
     Question     Question[]
     QuestionLike QuestionLike[]
     Answer       Answer[]
+    Save         Save[]
 }
 
 model QuestionLike {
@@ -31,16 +32,18 @@ model QuestionLike {
 }
 
 model Question {
-    questionId   String         @id @default(cuid())
-    title        String         @default("none")
-    content      String         @default("none") @db.Text
-    tags         String[]       @default([])
-    userId       String
-    createdAt    DateTime       @default(now())
-    updatedAt    DateTime       @updatedAt
+    questionId String   @id @default(cuid())
+    title      String   @default("none")
+    content    String   @default("none") @db.Text
+    tags       String[] @default([])
+    userId     String
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
     user         User           @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
     QuestionLike QuestionLike[]
     Answer       Answer[]
+    Save         Save[]
 }
 
 model Answer {
@@ -51,6 +54,17 @@ model Answer {
     content    String   @default("none") @db.Text
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
-    user       User     @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+
+    user     User     @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+    question Question @relation(fields: [questionId], references: [questionId], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Save {
+    saveId     String   @id @default(cuid())
+    userId     String
+    questionId String
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
     question   Question @relation(fields: [questionId], references: [questionId], onDelete: Cascade, onUpdate: Cascade)
+    user       User     @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 }

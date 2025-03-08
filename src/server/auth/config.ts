@@ -45,19 +45,17 @@ export const authConfig = {
           return null;
         }
 
+      
         const { email, password } = parsedCredentials.data;
-
-        // Find user in database
+        console.log(email,password)
         const user = await db.user.findUnique({
           where: { email },
         });
 
+        console.log(user)
         if (!user) {
           return null;
         }
-
-        // Verify password using your password utility
-        // hash = hash 
         const isValidPassword = await compare(password, user.password);
 
         if (!isValidPassword) {

@@ -95,15 +95,16 @@ export const questionRouter = createTRPCRouter({
                         _count: {
                             select: {
                                 QuestionLike: true,
+                                Answer:true,
                             },
                         },
                     },
                 });
 
-                // Transform the data for the frontend
                 const transformedItems = items.map((item) => ({
                     ...item,
                     likeCount: item._count.QuestionLike,
+                    replies: item._count.Answer,
                 }));
 
                 return {

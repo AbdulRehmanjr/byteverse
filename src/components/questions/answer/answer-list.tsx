@@ -10,8 +10,8 @@ import {
 } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { cn, parseHtml } from "~/lib/utils";
-import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { parseHtml } from "~/lib/utils";
+import { Loader2 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import {
@@ -23,6 +23,7 @@ import {
   PaginationPrevious,
 } from "~/components/ui/pagination";
 import { AddResponseForm } from "~/components/questions/answer/add-answer";
+import { VoteButton } from "./vote-button";
 
 dayjs.extend(relativeTime);
 
@@ -117,17 +118,7 @@ export const ResponseList = ({ questionId }: { questionId: string }) => {
                       </div>
                     </div>
                   </div>
-                  <div className="grid place-items-center gap-2">
-                    <Button size="sm" aria-label="Vote up">
-                      <ChevronUp className="h-5 w-5" />
-                    </Button>
-
-                    <p className={cn("text-base font-medium font-text")}>{answer.vote}</p>
-
-                    <Button size="sm" aria-label="Vote down">
-                      <ChevronDown className="h-5 w-5" />
-                    </Button>
-                  </div>
+                  <VoteButton vote={answer.vote} answerId={answer.answerId}/>
                 </div>
               </CardHeader>
               <CardContent>

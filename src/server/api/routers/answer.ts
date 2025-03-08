@@ -62,7 +62,7 @@ export const answerRouter = createTRPCRouter({
                         },
                     },
                     orderBy: {
-                        createdAt: "desc",
+                        vote: "desc",
                     },
                     take: limit,
                     skip,
@@ -95,5 +95,29 @@ export const answerRouter = createTRPCRouter({
             }
 
         }),
+
+    makeVote: protectedProcedure
+        .input(z.object({ answerId: z.string(), count: z.number() }))
+        .mutation(async ({ ctx, input }) => {
+            try {
+                await ctx.db.answer.update({
+                    where: { answerId: input.answerId },
+                    data: { vote: input.count }
+                })
+            } catch (error) {
+                if (error instanceof TRPCClientError) {
+                    console.error(error.message)
+                    throw new TRPCError({
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: error.message
+                    })
+                }
+                console.error(error)
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: 'Something went wrong'
+                })
+            }
+        })
 
 })
