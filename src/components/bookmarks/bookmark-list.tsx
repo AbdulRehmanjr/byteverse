@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { api } from "~/trpc/react";
-import { Badge } from "~/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -10,10 +9,9 @@ import {
   CardTitle,
   CardFooter,
 } from "~/components/ui/card";
-import { Clock, Tag, Eye, Loader2, MessageCircle } from "lucide-react";
+import { Clock, MessageCircle, Bookmark } from "lucide-react";
 import dayjs from "dayjs";
 import { parseHtml } from "~/lib/utils";
-import { LikeButton } from "~/components/questions/like-button";
 import {
   Pagination,
   PaginationContent,
@@ -26,38 +24,21 @@ import {
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
 import { cn } from "~/lib/utils";
-import { Skeleton } from "~/components/ui/skeleton";
-import { useSession } from "next-auth/react";
 
-export const QuestionList = () => {
-  const session = useSession();
+export const BookmarkList = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const limit = 5;
-
-  // Get total count for pagination using suspense
-  const [totalCount] = api.question.getQuestionCount.useSuspenseQuery();
-  const likedByMe = api.question.getLikedQuestionByMe.useQuery(undefined, {
-    enabled: session.data ? true : false,
-  });
-
-  // Calculate pagination values
   const skip = (currentPage - 1) * limit;
-  const totalPages = totalCount ? Math.ceil(totalCount / limit) : 0;
 
-  // Fetch questions with pagination using suspense
-  const [data, { isFetching }] = api.question.getAllQuestions.useSuspenseQuery({
+  const [data] = api.question.getAllBookmarks.useSuspenseQuery({
     limit,
     skip,
   });
 
-  const questions = data?.items || [];
+  const bookmarks = data || [];
+  const totalCount = bookmarks.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / limit));
 
   const handlePageChange = (page: number) => {
     if (page > 0 && page <= totalPages) {
@@ -66,36 +47,39 @@ export const QuestionList = () => {
     }
   };
 
+  if (bookmarks.length === 0) {
+    return (
+      <div className="flex h-80 flex-col items-center justify-center space-y-4 rounded-xl bg-gradient-to-b from-gray-50 to-white p-6 text-center dark:from-gray-950 dark:to-gray-900">
+        <Bookmark className="h-16 w-16 text-primary/50" strokeWidth={1.5} />
+        <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-300">
+          No bookmarks yet
+        </h2>
+        <p className="text-muted-foreground">
+          Start browsing questions and save them to view later
+        </p>
+        <Button asChild>
+          <Link href="/questions">Browse Questions</Link>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 rounded-xl bg-gradient-to-b from-gray-50 to-white p-6 py-4 transition-all duration-500 dark:from-gray-950 dark:to-gray-900">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-primary">Questions</h1>
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Tag className="mr-2 h-4 w-4" />
-                Filter by tag
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>All Tags</DropdownMenuItem>
-              <DropdownMenuItem>JavaScript</DropdownMenuItem>
-              <DropdownMenuItem>React</DropdownMenuItem>
-              <DropdownMenuItem>Next.js</DropdownMenuItem>
-              <DropdownMenuItem>TypeScript</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button type="button" asChild>
-            <Link href="/questions/ask">Ask Question</Link>
-          </Button>
-        </div>
+        <h1 className="text-3xl font-bold text-primary">My Bookmarks</h1>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/questions">
+            <Bookmark className="mr-2 h-4 w-4" />
+            Browse Questions
+          </Link>
+        </Button>
       </div>
 
       <div className="space-y-6 transition-all duration-500">
-        {questions.map((question) => (
+        {bookmarks.map((bookmark) => (
           <div
-            key={question.questionId}
+            key={bookmark.saveId}
             className="transition-all duration-500 hover:-translate-y-1"
           >
             <Card
@@ -108,22 +92,22 @@ export const QuestionList = () => {
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8 ring-2 ring-primary/30 ring-offset-2 transition-all duration-300">
                       <AvatarImage
-                        src={`https://avatar.vercel.sh/${question.questionId}.png`}
+                        src={`https://avatar.vercel.sh/${bookmark.questionId}.png`}
                       />
                       <AvatarFallback>
-                        {question.title.substring(0, 2).toUpperCase()}
+                        {bookmark.question.title.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <CardTitle className="text-xl font-bold text-primary hover:underline group-hover:to-primary">
-                      <Link href={`/questions/${question.questionId}`}>
-                        {question.title}
+                      <Link href={`/questions/${bookmark.questionId}`}>
+                        {bookmark.question.title}
                       </Link>
                     </CardTitle>
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Clock className="mr-1 h-4 w-4" />
                     <span>
-                      {dayjs(question.createdAt).format("DD.MM.YYYY")}
+                      {dayjs(bookmark.createdAt).format("DD.MM.YYYY")}
                     </span>
                   </div>
                 </div>
@@ -135,49 +119,18 @@ export const QuestionList = () => {
                     "mb-4 line-clamp-3 text-muted-foreground transition-all duration-500",
                   )}
                 >
-                  {parseHtml(question.content)}
-                </div>
-
-                <div className="my-3 flex flex-wrap gap-3 transition-all duration-300">
-                  {question.tags.map((tag, index) => (
-                    <Badge
-                      key={index}
-                      variant="default"
-                      className="flex items-center"
-                    >
-                      <Tag className="mr-1 h-3 w-3" />
-                      {tag}
-                    </Badge>
-                  ))}
+                  {parseHtml(bookmark.question.content)}
                 </div>
               </CardContent>
 
               <CardFooter className="flex items-center justify-between border-t bg-gray-50 bg-opacity-50 pt-3 backdrop-blur-sm transition-all duration-300 dark:bg-gray-900">
                 <div className="flex items-center gap-2 text-sm">
                   <Button variant="ghost" size="sm" className="gap-1" asChild>
-                    <Link href={`/questions/${question.questionId}`}>
+                    <Link href={`/questions/${bookmark.questionId}`}>
                       <MessageCircle className="h-4 w-4" />
-                      <span>{question._count.Answer ?? 0} replies</span>
+                      <span>View Question</span>
                     </Link>
                   </Button>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Eye className="mr-1 h-4 w-4" />
-                    <span>{Math.floor(Math.random() * 100)}</span>
-                  </div>
-                  <LikeButton
-                    liked={
-                      likedByMe.data?.find(
-                        (q) => q.questionId == question.questionId,
-                      )
-                        ? true
-                        : false
-                    }
-                    likes={question._count.QuestionLike ?? 0}
-                    questionId={question.questionId}
-                  />
                 </div>
               </CardFooter>
             </Card>
@@ -185,41 +138,8 @@ export const QuestionList = () => {
         ))}
       </div>
 
-      {isFetching && (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card
-              key={i}
-              className="overflow-hidden border-l-4 border-l-primary/20"
-            >
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-8 w-8 animate-pulse rounded-full" />
-                  <Skeleton className="h-6 w-64 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="mb-2 h-4 w-full" />
-                <Skeleton className="mb-2 h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <div className="mt-4 flex gap-2">
-                  <Skeleton className="h-6 w-16 rounded-full bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600" />
-                  <Skeleton className="h-6 w-16 rounded-full" />
-                </div>
-              </CardContent>
-              <CardFooter className="border-t pt-3">
-                <div className="flex w-full justify-between">
-                  <Skeleton className="h-6 w-20" />
-                  <Skeleton className="h-6 w-20" />
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      )}
-
       {/* Enhanced Pagination */}
-      {totalPages > 0 && !isFetching && (
+      {totalPages > 1 && (
         <div className="mt-8 pb-4 transition-all duration-500">
           <Pagination className="rounded-xl border border-primary/20 p-2 shadow-sm">
             <PaginationContent>
@@ -282,12 +202,6 @@ export const QuestionList = () => {
               </PaginationItem>
             </PaginationContent>
           </Pagination>
-        </div>
-      )}
-
-      {isFetching && (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary drop-shadow-lg" />
         </div>
       )}
     </div>

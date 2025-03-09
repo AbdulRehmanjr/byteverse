@@ -95,7 +95,7 @@ export const questionRouter = createTRPCRouter({
                         _count: {
                             select: {
                                 QuestionLike: true,
-                                Answer:true,
+                                Answer: true,
                             },
                         },
                     },
@@ -176,6 +176,69 @@ export const questionRouter = createTRPCRouter({
                     }
                 })
 
+            } catch (error) {
+                if (error instanceof TRPCClientError) {
+                    console.error(error.message);
+                    throw new TRPCError({
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: error.message
+                    });
+                }
+                console.error(error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: 'Something went wrong'
+                });
+            }
+        }),
+
+    bookmarkQuestionById: protectedProcedure
+        .input(z.object({ questionId: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            try {
+                await ctx.db.save.create({
+                    data: {
+                        questionId: input.questionId,
+                        userId: ctx.session.user.id
+                    }
+                })
+            } catch (error) {
+                if (error instanceof TRPCClientError) {
+                    console.error(error.message);
+                    throw new TRPCError({
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: error.message
+                    });
+                }
+                console.error(error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: 'Something went wrong'
+                });
+            }
+        }),
+
+    getAllBookmarks: protectedProcedure
+        .input(z.object({
+            limit: z.number().min(1).max(100).default(10),
+            skip: z.number().optional(),
+        }))
+        .query(async ({ ctx, input }) => {
+            try {
+                const { limit, skip } = input;
+                return  await ctx.db.save.findMany({
+                    take: limit,
+                    skip: skip ?? 0,
+                    orderBy: { createdAt: 'desc' },
+                    include : {
+                        question : {
+                            select : {
+                                title:true,
+                                content:true,
+                            }
+                        }
+                    }
+                });
             } catch (error) {
                 if (error instanceof TRPCClientError) {
                     console.error(error.message);

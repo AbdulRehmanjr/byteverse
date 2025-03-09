@@ -3,24 +3,22 @@
 import { Bookmark } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
+import { api } from "~/trpc/react";
 
 type ComponentProps = {
   questionId: string;
 };
 
 export const BookmarkButton = ({ questionId }: ComponentProps) => {
-  const handleCopyLink = async () => {
-    try {
-      //   await navigator.clipboard.writeText(
-      //     `http://localhost:3000/questions/${questionId}`,
-      //   );
-      console.log(questionId);
+
+  const bookmarkMutation = api.question.bookmarkQuestionById.useMutation({
+    onSuccess: () => {
       toast.success("Question bookmarked");
-    } catch (err) {
-      console.log(err);
+    },
+    onError: () => {
       toast.error("Question not bookmarked");
-    }
-  };
+    },
+  });
 
   return (
     <Button
@@ -28,7 +26,7 @@ export const BookmarkButton = ({ questionId }: ComponentProps) => {
       variant="ghost"
       size="icon"
       className="h-8 w-8 rounded-full"
-      onClick={handleCopyLink}
+      onClick={() => bookmarkMutation.mutate({ questionId })}
     >
       <Bookmark className="h-4 w-4" />
     </Button>
