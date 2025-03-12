@@ -3,49 +3,28 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { PrismaClientUnknownRequestError } from "@prisma/client/runtime/library";
 
-const profileSchema = z.object({
-  userName: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  role: z.string().min(2, "Role is required").optional(),
-  company: z.string().optional(),
-  location: z.string().optional(),
-  bio: z.string().max(500, "Bio must be less than 500 characters").optional().nullable(),
-  githubUrl: z.string().url("Please enter a valid URL").optional().nullable(),
-  websiteUrl: z.string().url("Please enter a valid URL").optional().nullable(),
-  tags: z.array(z.string()).optional(),
-  isVerified: z.boolean().default(false),
-  isTopContributor: z.boolean().default(false),
-  receiveNotifications: z.boolean().default(true),
-  showEmail: z.boolean().default(false),
-});
 
 export const profileRouter = createTRPCRouter({
   getUserProfile: protectedProcedure
     .query(async ({ ctx }) => {
-      const userId = ctx.session.user.id;
-      
       try {
-        // Find existing profile
+        const userId = ctx.session.user.id;
         let profile = await ctx.db.userProfile.findUnique({
           where: { userId },
         });
-        
-        // If no profile exists, create one with default values
+
         if (!profile) {
-          // Get the user to use their username
           const user = await ctx.db.user.findUnique({
             where: { userId },
             select: { userName: true, email: true },
           });
-          
+
           if (!user) {
             throw new TRPCError({
               code: "NOT_FOUND",
               message: "User not found",
             });
           }
-          
-          // Create a new profile
           profile = await ctx.db.userProfile.create({
             data: {
               userId,
@@ -58,7 +37,7 @@ export const profileRouter = createTRPCRouter({
             },
           });
         }
-        
+
         // Return profile with user data
         const userData = await ctx.db.user.findUnique({
           where: { userId },
@@ -67,14 +46,14 @@ export const profileRouter = createTRPCRouter({
             email: true,
           },
         });
-        
+
         if (!userData) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "User data not found",
           });
         }
-        
+
         return {
           ...profile,
           userName: userData.userName,
@@ -88,22 +67,39 @@ export const profileRouter = createTRPCRouter({
         });
       }
     }),
-    
+
   updateProfile: protectedProcedure
-    .input(profileSchema)
+    .input(z.object({
+      userName: z.string().min(3, "Username must be at least 3 characters"),
+      email: z.string().email("Please enter a valid email address"),
+      role: z.string().min(2, "Role is required").optional(),
+      dp: z.string(),
+      company: z.string().optional(),
+      location: z.string().optional(),
+      bio: z.string().max(500, "Bio must be less than 500 characters").optional().nullable(),
+      githubUrl: z.string()
+        .url("Please enter a valid URL")
+        .optional()
+        .or(z.literal("")),
+      websiteUrl: z.string()
+        .url("Please enter a valid URL")
+        .optional()
+        .or(z.literal("")),
+      tags: z.array(z.string()).optional(),
+      isVerified: z.boolean().default(false),
+      isTopContributor: z.boolean().default(false),
+      receiveNotifications: z.boolean().default(true),
+      showEmail: z.boolean().default(false),
+    }))
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      
+
       try {
-        // Check if profile exists
         const profileExists = await ctx.db.userProfile.findUnique({
           where: { userId },
         });
-        
-        // Extract user data fields and profile data fields
         const { userName, email, ...profileData } = input;
-        
-        // Start a transaction
+
         return await ctx.db.$transaction(async (prisma) => {
           // Update user data (userName and email)
           await prisma.user.update({
@@ -113,7 +109,7 @@ export const profileRouter = createTRPCRouter({
               email,
             },
           });
-          
+
           // Update or create profile
           if (profileExists) {
             return await prisma.userProfile.update({
@@ -134,26 +130,22 @@ export const profileRouter = createTRPCRouter({
         });
       } catch (error) {
         console.error("Error updating profile:", error);
-        // Check for unique constraint violations
-        if (error instanceof PrismaClientUnknownRequestError ) {
+        if (error instanceof PrismaClientUnknownRequestError) {
           throw new TRPCError({
             code: "CONFLICT",
-            message: `The already in user by another account`,
+            message: `The already in user by another ac count`,
           });
         }
-        
+
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to update profile",
         });
       }
     }),
-    
-  // Get profile by username (public)
+
   getProfileByUsername: protectedProcedure
-    .input(z.object({
-      userName: z.string(),
-    }))
+    .input(z.object({ userName: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
         // Find user by username
@@ -165,30 +157,30 @@ export const profileRouter = createTRPCRouter({
             email: true,
           },
         });
-        
+
         if (!user) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "User not found",
           });
         }
-        
+
         // Get profile
         const profile = await ctx.db.userProfile.findUnique({
           where: { userId: user.userId },
         });
-        
+
         if (!profile) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Profile not found",
           });
         }
-        
+
         // Only include email if showEmail is true or if it's the current user
         const isCurrentUser = user.userId === ctx.session.user.id;
         const email = profile.showEmail || isCurrentUser ? user.email : null;
-        
+
         return {
           ...profile,
           userName: user.userName,
@@ -206,7 +198,7 @@ export const profileRouter = createTRPCRouter({
         });
       }
     }),
-    
+
   // Get all profiles for the user list page
   getAllProfiles: protectedProcedure
     .input(z.object({
@@ -221,25 +213,25 @@ export const profileRouter = createTRPCRouter({
     }))
     .query(async ({ ctx, input }) => {
       const { limit, cursor, filter } = input;
-      
+
       try {
         // Build where condition
         const where: any = {};
-        
+
         if (filter?.tag) {
           where.tags = {
             has: filter.tag,
           };
         }
-        
+
         if (filter?.isVerified !== undefined) {
           where.isVerified = filter.isVerified;
         }
-        
+
         if (filter?.isTopContributor !== undefined) {
           where.isTopContributor = filter.isTopContributor;
         }
-        
+
         // Get profiles with pagination
         const profiles = await ctx.db.userProfile.findMany({
           take: limit + 1, // Take one more for cursor
@@ -257,26 +249,26 @@ export const profileRouter = createTRPCRouter({
             },
           },
         });
-        
+
         // Handle cursor-based pagination
         let nextCursor: string | undefined = undefined;
         if (profiles.length > limit) {
           const nextItem = profiles.pop();
           nextCursor = nextItem?.profileId;
         }
-        
+
         // Filter profiles if search term provided
         let filteredProfiles = profiles;
         if (filter?.search) {
           const search = filter.search.toLowerCase();
-          filteredProfiles = profiles.filter(profile => 
+          filteredProfiles = profiles.filter(profile =>
             profile.user.userName.toLowerCase().includes(search) ||
             (profile.role && profile.role.toLowerCase().includes(search)) ||
             (profile.company && profile.company.toLowerCase().includes(search)) ||
             (profile.bio && profile.bio.toLowerCase().includes(search))
           );
         }
-        
+
         // Format profiles to include username and email
         const formattedProfiles = filteredProfiles.map(profile => ({
           ...profile,
@@ -285,7 +277,7 @@ export const profileRouter = createTRPCRouter({
           // Remove the user object to avoid redundancy
           user: undefined,
         }));
-        
+
         return {
           profiles: formattedProfiles,
           nextCursor,

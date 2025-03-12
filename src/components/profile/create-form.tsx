@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Loader2, Save, Plus, X } from "lucide-react";
-
+import { Loader2, Save, Plus, X, Camera } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -37,18 +36,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Separator } from "~/components/ui/separator";
 import { Switch } from "~/components/ui/switch";
 import { toast } from "sonner";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
+import { UploadButton } from "~/utils/uploadthing";
 
 const userProfileSchema = z.object({
-  // Basic Information
   userName: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Please enter a valid email address"),
   role: z.string().min(2, "Role is required"),
   company: z.string().optional(),
   location: z.string().optional(),
   bio: z.string().max(500, "Bio must be less than 500 characters").optional(),
+  dp: z.string().optional(),
 
   // Links
   githubUrl: z
@@ -74,7 +73,6 @@ type UserProfileValues = z.infer<typeof userProfileSchema>;
 export const ProfileForm = () => {
   const router = useRouter();
   const [tagInput, setTagInput] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [tags, setTags] = useState<string[]>([]);
 
   const [initialProfile] = api.profile.getUserProfile.useSuspenseQuery();
@@ -84,18 +82,29 @@ export const ProfileForm = () => {
     defaultValues: {
       userName: "",
       email: "",
-      role: "",
+      role: initialProfile.role ?? "",
       company: "",
       location: "",
       bio: "",
       githubUrl: "",
       websiteUrl: "",
+      dp: "",
       isVerified: false,
       isTopContributor: false,
       receiveNotifications: false,
       showEmail: false,
     },
     mode: "onChange",
+  });
+
+  const updateProfile = api.profile.updateProfile.useMutation({
+    onSuccess: () => {
+      toast.success("Profile updated successfully");
+      router.refresh();
+    },
+    onError: () => {
+      toast.error("Failed to update profile. Please try again.");
+    },
   });
 
   useEffect(() => {
@@ -108,6 +117,7 @@ export const ProfileForm = () => {
       bio: initialProfile.bio ?? "",
       githubUrl: initialProfile.githubUrl ?? "",
       websiteUrl: initialProfile.websiteUrl ?? "",
+      dp: initialProfile.dp ?? "",
       isVerified: initialProfile.isVerified,
       isTopContributor: initialProfile.isTopContributor,
       receiveNotifications: initialProfile.receiveNotifications,
@@ -115,41 +125,10 @@ export const ProfileForm = () => {
     });
   }, [form, initialProfile]);
 
-  // Handle form submission
   const onSubmit = async (data: UserProfileValues) => {
-    setIsSubmitting(true);
-
-    try {
-      // Include tags in the data
-      const fullData = {
-        ...data,
-        tags,
-      };
-
-      // Save profile data
-      const response = await fetch("/api/profile", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(fullData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update profile");
-      }
-
-      toast.success("Profile updated successfully");
-      router.refresh();
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    updateProfile.mutate({ ...data, tags, dp: data.dp ?? "/placeholder.png" });
   };
 
-  // Handle tag addition
   const addTag = () => {
     const trimmedTag = tagInput.trim().toLowerCase();
     if (trimmedTag && !tags.includes(trimmedTag)) {
@@ -175,21 +154,91 @@ export const ProfileForm = () => {
               Update your profile information and preferences
             </CardDescription>
           </div>
-          <Avatar className="h-16 w-16 border-2 border-primary/20">
-            <AvatarImage
-              src={`https://avatar.vercel.sh/${form.getValues().userName ?? "user"}.png`}
-              alt="Profile"
-            />
-            <AvatarFallback>
-              {form.getValues().userName?.substring(0, 2).toUpperCase() ?? "U"}
-            </AvatarFallback>
-          </Avatar>
+
+          {/* Display avatar in header without FormField */}
+          <div className="relative">
+            <Avatar className="h-16 w-16 border-2 border-primary/20">
+              <AvatarImage
+                src={form.watch("dp") ?? "/placeholder.png"}
+                alt="Profile"
+              />
+              <AvatarFallback>
+                {form.watch("userName")?.substring(0, 2).toUpperCase() ?? "U"}
+              </AvatarFallback>
+            </Avatar>
+          </div>
         </div>
       </CardHeader>
 
       <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* DP Upload Field inside the Form */}
+            <FormField
+              control={form.control}
+              name="dp"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-end gap-4">
+                  <FormLabel className="font-heading text-sm font-medium">
+                    Profile Picture:
+                  </FormLabel>
+                  <div className="relative">
+                    <Avatar className="h-12 w-12 border-2 border-primary/20">
+                      <AvatarImage
+                        src={field.value ?? "/placeholder.png"}
+                        alt="Profile"
+                      />
+                      <AvatarFallback>
+                        {form
+                          .watch("userName")
+                          ?.substring(0, 2)
+                          .toUpperCase() ?? "U"}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="absolute bottom-0 right-0">
+                      <div className="rounded-full bg-primary p-1 shadow-sm">
+                        <UploadButton
+                          endpoint="imageUploader"
+                          appearance={{
+                            button: "h-4 w-4 rounded-full p-0",
+                            allowedContent: "hidden",
+                          }}
+                          content={{
+                            button: (
+                              <Camera className="mx-auto h-4 w-4 cursor-pointer text-white" />
+                            ),
+                          }}
+                          onUploadBegin={() => {
+                            // Added this handler
+                            toast.loading("Uploading...", {
+                              description: "Your image is being uploaded",
+                            });
+                            toast.dismiss();
+                          }}
+                          onClientUploadComplete={(res) => {
+                            console.log(res);
+                            field.onChange(res[0]?.appUrl);
+                            toast.success("Image uploaded successfully", {
+                              description:
+                                "Your image has been uploaded successfully",
+                            });
+                          }}
+                          onUploadError={(error: Error) => {
+                            toast.error(`Upload failed: ${error.message}`);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <FormDescription className="font-text text-xs">
+                    Click the camera icon to update your profile picture
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {/* Basic Information */}
             <div className="space-y-4">
               <h3 className="font-heading text-lg font-medium">
@@ -654,12 +703,8 @@ export const ProfileForm = () => {
             </div>
 
             <div className="flex justify-end">
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="font-text"
-              >
-                {isSubmitting ? (
+              <Button type="submit" disabled={updateProfile.isPending}>
+                {updateProfile.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Saving...

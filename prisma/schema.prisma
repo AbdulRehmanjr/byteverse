@@ -73,6 +73,7 @@ model Save {
 
 model UserProfile {
     profileId            String   @id @default(cuid())
+    dp                   String   @default("/placeholder.png")
     userId               String   @unique
     bio                  String?  @db.Text
     role                 String?
