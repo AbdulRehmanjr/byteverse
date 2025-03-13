@@ -12,10 +12,10 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { User, Settings, LogOut } from "lucide-react";
+import Link from "next/link";
 
 export function UserAccountDropdown() {
-  const [isOpen, setIsOpen] = useState(false);
-
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const handleSignOut = async () => {
     await signOut({ redirect: false });
   };
@@ -39,15 +39,13 @@ export function UserAccountDropdown() {
         </DropdownMenuLabel> */}
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem
-            className="cursor-pointer"
-          >
-            <User className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+          <DropdownMenuItem className="cursor-pointer" asChild>
+            <Link href="/profile">
+              <User className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer"
-          >
+          <DropdownMenuItem className="cursor-pointer">
             <Settings className="mr-2 h-4 w-4" />
             <span>Settings</span>
           </DropdownMenuItem>

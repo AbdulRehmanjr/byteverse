@@ -44,15 +44,10 @@ export const authConfig = {
         if (!parsedCredentials.success) {
           return null;
         }
-
-      
         const { email, password } = parsedCredentials.data;
-        console.log(email,password)
         const user = await db.user.findUnique({
           where: { email },
         });
-
-        console.log(user)
         if (!user) {
           return null;
         }

@@ -9,13 +9,14 @@ datasource db {
 
 model User {
     userId       String         @id @default(cuid())
-    userName     String         @default("none")
+    userName     String         @unique
     email        String         @unique
     password     String
     Question     Question[]
     QuestionLike QuestionLike[]
     Answer       Answer[]
     Save         Save[]
+    UserProfile  UserProfile?
 }
 
 model QuestionLike {
@@ -65,6 +66,29 @@ model Save {
     questionId String
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
-    question   Question @relation(fields: [questionId], references: [questionId], onDelete: Cascade, onUpdate: Cascade)
-    user       User     @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+
+    question Question @relation(fields: [questionId], references: [questionId], onDelete: Cascade, onUpdate: Cascade)
+    user     User     @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model UserProfile {
+    profileId            String   @id @default(cuid())
+    dp                   String   @default("/placeholder.png")
+    userId               String   @unique
+    bio                  String?  @db.Text
+    role                 String?
+    company              String?
+    location             String?
+    githubUrl            String?
+    websiteUrl           String?
+    tags                 String[] @default([])
+    isVerified           Boolean  @default(false)
+    isTopContributor     Boolean  @default(false)
+    receiveNotifications Boolean  @default(true)
+    showEmail            Boolean  @default(false)
+    reputation           Int      @default(0)
+    createdAt            DateTime @default(now())
+    updatedAt            DateTime @updatedAt
+
+    user User @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 }
