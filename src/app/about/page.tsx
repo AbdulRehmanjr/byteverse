@@ -1,190 +1,239 @@
-import Image from "next/image";
-import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
+// AboutPage.jsx
+import React from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
+import { Badge } from "~/components/ui/badge";
+import { Github, Code2, Users, Zap, Laptop, LineChart, MessagesSquare, BookOpen } from "lucide-react";
 
-import { Skeleton } from "~/components/ui/skeleton";
-
-const DelayClasses = {
-  0: "delay-[0ms]",
-  1: "delay-[2000ms]",
-  2: "delay-[4000ms]",
-  3: "delay-[6000ms]",
-} as const;
-
-export const LoadingSkeletons = () => {
-  const skeletonGroups = Array.from({ length: 4 }, (_, i) => ({
-    items: [
-      { width: "w-3/4" },
-      { width: "w-1/2" },
-      { width: "w-2/3" },
-      { width: "w-2/3" },
-      { width: "w-1/2" },
-      { width: "w-3/4" },
-    ],
-    delayClass: DelayClasses[i as keyof typeof DelayClasses]
-  }));
-
+export default function AboutPage() {
   return (
-    <div className="w-full max-w-sm overflow-hidden">
-      <div className="relative h-[400px]">
-        {skeletonGroups.map((group, groupIndex) => (
-          <div
-            key={groupIndex}
-            className={`animate-slide-up absolute inset-x-0 space-y-6 ${group.delayClass}`}
-          >
-            {group.items.map((item, itemIndex) => (
-              <Skeleton
-                key={itemIndex}
-                className={`h-4 ${item.width} bg-gray-200/60`}
+    <div className="container mx-auto py-10 px-4 max-w-7xl">
+      {/* Hero Section */}
+      <section className="mb-16 text-center">
+        <div className="flex justify-center mb-6">
+          <Code2 className="h-16 w-16 text-primary" />
+        </div>
+        <h1 className="text-4xl font-bold tracking-tight mb-4">About ByteVerse</h1>
+        <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          The premier global destination for programmers to connect, learn, and grow together.
+        </p>
+      </section>
+
+      {/* Mission Statement */}
+      <section className="mb-16">
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl">Our Mission</CardTitle>
+          </CardHeader>
+          <CardContent className="text-lg">
+            <p className="leading-relaxed">
+              ByteVerse empowers developers and technology enthusiasts by fostering seamless discussions, 
+              knowledge sharing, and collaborative problem-solving. We've built an ecosystem where 
+              technical expertise thrives, collaboration flourishes, and professional growth is a shared journey.
+            </p>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Features Section */}
+      <section className="mb-16">
+        <h2 className="text-3xl font-bold mb-8 text-center">Platform Features</h2>
+        
+        <Tabs defaultValue="community" className="w-full">
+          <TabsList className="grid grid-cols-4 mb-8">
+            <TabsTrigger value="community">Community</TabsTrigger>
+            <TabsTrigger value="ai">AI Integration</TabsTrigger>
+            <TabsTrigger value="tools">Developer Tools</TabsTrigger>
+            <TabsTrigger value="growth">Growth & Learning</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="community" className="mt-0">
+            <div className="grid md:grid-cols-2 gap-6">
+              <FeatureCard 
+                icon={<Users className="h-8 w-8" />}
+                title="Vibrant Developer Community"
+                description="Connect with like-minded developers, share insights, and build your professional network in a supportive environment."
               />
-            ))}
-          </div>
-        ))}
-      </div>
+              <FeatureCard 
+                icon={<MessagesSquare className="h-8 w-8" />}
+                title="Organized Discussions"
+                description="Participate in structured conversations across various programming topics, languages, and frameworks."
+              />
+              <FeatureCard 
+                title="Reputation System"
+                description="Earn recognition for your valuable contributions through our robust voting and reputation system."
+                icon={<Badge className="h-8 w-8" />}
+              />
+              <FeatureCard 
+                title="Private Messaging"
+                description="Communicate securely with other members for more detailed discussions and collaborations."
+                icon={<MessagesSquare className="h-8 w-8" />}
+              />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="ai" className="mt-0">
+            <div className="grid md:grid-cols-2 gap-6">
+              <FeatureCard 
+                icon={<Zap className="h-8 w-8" />}
+                title="AI-Powered Chatbot"
+                description="Get real-time assistance with your programming queries through our advanced AI chatbot."
+              />
+              <FeatureCard 
+                icon={<LineChart className="h-8 w-8" />}
+                title="Personalized Recommendations"
+                description="Discover relevant content and discussions tailored to your interests and activity patterns."
+              />
+              <FeatureCard 
+                title="Intelligent Content Curation"
+                description="Access high-quality, curated content that matters most to your learning journey."
+                icon={<BookOpen className="h-8 w-8" />}
+              />
+              <FeatureCard 
+                title="Enhanced Search Capabilities"
+                description="Find precise solutions faster with our AI-powered search functionality."
+                icon={<Zap className="h-8 w-8" />}
+              />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="tools" className="mt-0">
+            <div className="grid md:grid-cols-2 gap-6">
+              <FeatureCard 
+                icon={<Code2 className="h-8 w-8" />}
+                title="Code Snippet Sharing"
+                description="Share, review, and debug code snippets collaboratively within the platform."
+              />
+              <FeatureCard 
+                icon={<Github className="h-8 w-8" />}
+                title="GitHub Integration"
+                description="Connect your GitHub repositories for seamless project sharing and version control."
+              />
+              <FeatureCard 
+                title="Moderation Tools"
+                description="Community-driven moderation ensures high-quality content and respectful interactions."
+                icon={<Users className="h-8 w-8" />}
+              />
+              <FeatureCard 
+                title="Mobile Responsiveness"
+                description="Access ByteVerse on any device with our seamless mobile-responsive design."
+                icon={<Laptop className="h-8 w-8" />}
+              />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="growth" className="mt-0">
+            <div className="grid md:grid-cols-2 gap-6">
+              <FeatureCard 
+                icon={<BookOpen className="h-8 w-8" />}
+                title="Personalized Learning Paths"
+                description="Follow customized learning journeys tailored to your skill level and career goals."
+              />
+              <FeatureCard 
+                icon={<LineChart className="h-8 w-8" />}
+                title="Progress Analytics"
+                description="Track your learning progress and engagement with detailed analytics and insights."
+              />
+              <FeatureCard 
+                title="Mentorship Opportunities"
+                description="Connect with experienced developers for guidance and career advancement."
+                icon={<Users className="h-8 w-8" />}
+              />
+              <FeatureCard 
+                title="Emerging Trends Insights"
+                description="Stay updated with the latest programming trends and technologies through AI-curated content."
+                icon={<Zap className="h-8 w-8" />}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
+      </section>
+
+      {/* Tech Stack Section */}
+      <section className="mb-16">
+        <h2 className="text-3xl font-bold mb-8 text-center">Our Technology Stack</h2>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <TechBadge name="Next.js" description="Fast, responsive interfaces" />
+          <TechBadge name="tRPC" description="Seamless API communication" />
+          <TechBadge name="TypeScript" description="Robust, type-safe code" />
+          <TechBadge name="Tailwind CSS" description="Efficient styling" />
+          <TechBadge name="Prisma" description="Modern database access" />
+          <TechBadge name="PostgreSQL" description="Relational data management" />
+          <TechBadge name="Firebase" description="Authentication & real-time updates" />
+          <TechBadge name="Cloudinary" description="Media management" />
+        </div>
+      </section>
+
+      {/* Vision Section */}
+      <section className="mb-16">
+        <Card className="bg-primary text-primary-foreground">
+          <CardHeader>
+            <CardTitle className="text-2xl">Our Vision</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg">
+              ByteVerse aims to redefine how programmers interact and innovate. By prioritizing 
+              user-centric design and continuously evolving with AI-powered tools, we're creating 
+              the most influential programming community on the internet. Join us in this shared 
+              journey of growth and discovery.
+            </p>
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Badge variant="outline" className="text-primary-foreground border-primary-foreground">
+              Since 2025
+            </Badge>
+          </CardFooter>
+        </Card>
+      </section>
+
+      {/* Team/Join Us Section */}
+      <section>
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Join Our Community</CardTitle>
+            <CardDescription>
+              Become part of a thriving ecosystem of developers and technology enthusiasts
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-muted-foreground mb-6">
+              Whether you're a seasoned developer or just starting your coding journey, 
+              ByteVerse welcomes you to join our global community of problem-solvers and innovators.
+            </p>
+            <div className="flex justify-center gap-4">
+              <Badge variant="secondary" className="text-lg py-2 px-4">
+                Sign Up
+              </Badge>
+              <Badge variant="outline" className="text-lg py-2 px-4">
+                Learn More
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
 }
 
-export default function AboutPage() {
-  const stats = [
-    {
-      value: "17 years",
-      label: "of trusted and high-quality knowledge",
-    },
-    {
-      value: "14 seconds",
-      label: "average time between new questions",
-    },
-    {
-      value: "58 million",
-      label: "total questions and answers so far",
-    },
-    {
-      value: "51 billion",
-      label: "times knowledge has been reused",
-    },
-  ];
-
-  return (
-    <section className="mx-6 grid place-items-center gap-2">
-      <div className="mb-32 flex flex-col items-center text-center">
-        {/* Logo Circle */}
-        <div className="mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-orange-500">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            className="h-8 w-8 text-white"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-        </div>
-
-        {/* Main Heading */}
-        <h1 className="mb-6 max-w-4xl text-4xl font-bold leading-tight text-gray-900 md:text-5xl">
-          Empowering the world to develop technology through collective
-          knowledge.
-        </h1>
-
-        {/* Subheading */}
-        <p className="max-w-2xl text-xl text-gray-600">
-          Our products and tools enable people to ask, share and learn at work
-          or at home.
-        </p>
+// Helper Components
+const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) => (
+  <Card>
+    <CardHeader>
+      <div className="flex items-center gap-2">
+        {icon}
+        <CardTitle>{title}</CardTitle>
       </div>
+    </CardHeader>
+    <CardContent>
+      <p className="text-muted-foreground">{description}</p>
+    </CardContent>
+  </Card>
+);
 
-      {/* Stats Row */}
-      <div className="w-full rounded-lg bg-gray-50 py-16">
-        <div className="grid grid-cols-4 gap-8 px-8">
-          {stats.map((stat, index) => (
-            <div key={index} className="text-center">
-              <h2 className="mb-3 text-4xl font-bold text-gray-900">
-                {stat.value}
-              </h2>
-              <p className="text-sm text-gray-600">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Stack Overflow Introduction Card */}
-      <div className="mt-16 w-full">
-        <Card className="bg-orange-50 p-8">
-          <CardContent className="flex flex-col gap-8 p-0 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-6">
-              <div className="w-48">
-                <Image
-                  src="/logo.png"
-                  alt="Stack Overflow"
-                  width={200}
-                  height={50}
-                  className="h-auto w-full"
-                  priority
-                />
-              </div>
-              <p className="max-w-xl text-lg text-gray-700">
-                We&apos;re best known for our public Q&A platform that millions
-                of people visit every month to ask questions, learn, and share
-                technical knowledge.
-              </p>
-              <Button className="bg-orange-500 text-white hover:bg-orange-600">
-                Join the community
-              </Button>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-sm font-medium">
-                The Best of the Internet
-                <span className="ml-2 text-gray-600">2021</span>
-              </div>
-              <div className="w-24">
-                <Image
-                  src="/logo.png"
-                  alt="Webby Awards"
-                  width={100}
-                  height={100}
-                  className="h-auto w-full"
-                  priority
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white p-8">
-          <CardContent className="flex items-start justify-between p-0">
-            <div className="space-y-6">
-              <div className="w-48">
-                <Image
-                  src="/logo.png"
-                  alt="Stack Overflow API"
-                  width={200}
-                  height={50}
-                  className="h-auto w-full"
-                  priority
-                />
-              </div>
-              <p className="max-w-xl text-lg text-gray-700">
-                A subscription-based API service that provides continuous access
-                to Stack Overflow&apos;s public dataset to train and fine-tune
-                large language models.
-              </p>
-              <div className="flex items-center gap-4">
-                <div className="rounded-md bg-blue-50 px-4 py-2">
-                  <span className="text-sm font-medium text-blue-700">
-                    The API Awards Best AI API 2024
-                  </span>
-                </div>
-              </div>
-              <Button variant="secondary">Learn more</Button>
-            </div>
-            <LoadingSkeletons />
-          </CardContent>
-        </Card>
-      </div>
-    </section>
-  );
-}
+const TechBadge = ({ name, description }: { name: string; description: string }) => (
+  <div className="bg-secondary rounded-lg p-4 text-center">
+    <h3 className="font-semibold mb-1">{name}</h3>
+    <p className="text-xs text-muted-foreground">{description}</p>
+  </div>
+);
