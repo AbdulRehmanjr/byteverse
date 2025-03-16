@@ -108,6 +108,7 @@ export const ProfileForm = () => {
   });
 
   useEffect(() => {
+    setTags(initialProfile.tags ?? []);
     form.reset({
       userName: initialProfile.userName,
       email: initialProfile.email,

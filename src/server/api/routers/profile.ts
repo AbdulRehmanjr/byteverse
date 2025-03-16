@@ -1,8 +1,37 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { PrismaClientUnknownRequestError } from "@prisma/client/runtime/library";
+import { type Prisma } from "@prisma/client";
 
+const getAllProfilesInputSchema = z.object({
+  limit: z.number().min(1).max(100).default(20),
+  cursor: z.string().optional(),
+  filter: z.object({
+    tag: z.string().optional(),
+    isVerified: z.boolean().optional(),
+    isTopContributor: z.boolean().optional(),
+    search: z.string().optional(),
+  }).optional(),
+});
+
+// Return type for the formatted profiles
+type ProfileWithUser = Prisma.UserProfileGetPayload<{
+  include: { user: { select: { userName: true; email: true } } };
+}>;
+
+// Return type for the formatted profiles
+interface FormattedProfile extends Omit<ProfileWithUser, 'user'> {
+  userName: string;
+  email: string | null;
+}
+
+
+// Response type
+interface GetAllProfilesResponse {
+  profiles: FormattedProfile[];
+  nextCursor: string | undefined;
+}
 
 export const profileRouter = createTRPCRouter({
   getUserProfile: protectedProcedure
@@ -199,24 +228,14 @@ export const profileRouter = createTRPCRouter({
       }
     }),
 
-  // Get all profiles for the user list page
+
   getAllProfiles: protectedProcedure
-    .input(z.object({
-      limit: z.number().min(1).max(100).default(20),
-      cursor: z.string().optional(),
-      filter: z.object({
-        tag: z.string().optional(),
-        isVerified: z.boolean().optional(),
-        isTopContributor: z.boolean().optional(),
-        search: z.string().optional(),
-      }).optional(),
-    }))
-    .query(async ({ ctx, input }) => {
+    .input(getAllProfilesInputSchema)
+    .query(async ({ ctx, input }): Promise<GetAllProfilesResponse> => {
       const { limit, cursor, filter } = input;
 
       try {
-        // Build where condition
-        const where: any = {};
+        const where: Prisma.UserProfileWhereInput = {};
 
         if (filter?.tag) {
           where.tags = {
@@ -232,13 +251,12 @@ export const profileRouter = createTRPCRouter({
           where.isTopContributor = filter.isTopContributor;
         }
 
-        // Get profiles with pagination
         const profiles = await ctx.db.userProfile.findMany({
-          take: limit + 1, // Take one more for cursor
+          take: limit + 1,
           where,
           cursor: cursor ? { profileId: cursor } : undefined,
           orderBy: {
-            reputation: 'desc', // Order by reputation by default
+            reputation: 'desc',
           },
           include: {
             user: {
@@ -250,31 +268,32 @@ export const profileRouter = createTRPCRouter({
           },
         });
 
-        // Handle cursor-based pagination
         let nextCursor: string | undefined = undefined;
         if (profiles.length > limit) {
           const nextItem = profiles.pop();
           nextCursor = nextItem?.profileId;
         }
 
-        // Filter profiles if search term provided
         let filteredProfiles = profiles;
         if (filter?.search) {
           const search = filter.search.toLowerCase();
-          filteredProfiles = profiles.filter(profile =>
+          filteredProfiles = profiles.filter((profile: {
+            user: { userName: string },
+            role?: string | null,
+            company?: string | null,
+            bio?: string | null
+          }) =>
             profile.user.userName.toLowerCase().includes(search) ||
-            (profile.role && profile.role.toLowerCase().includes(search)) ||
-            (profile.company && profile.company.toLowerCase().includes(search)) ||
-            (profile.bio && profile.bio.toLowerCase().includes(search))
+            (profile.role?.toLowerCase().includes(search) ?? false) ||
+            (profile.company?.toLowerCase().includes(search) ?? false) ||
+            (profile.bio?.toLowerCase().includes(search) ?? false)
           );
         }
 
-        // Format profiles to include username and email
-        const formattedProfiles = filteredProfiles.map(profile => ({
+        const formattedProfiles: FormattedProfile[] = filteredProfiles.map((profile) => ({
           ...profile,
           userName: profile.user.userName,
           email: profile.showEmail ? profile.user.email : null,
-          // Remove the user object to avoid redundancy
           user: undefined,
         }));
 
@@ -290,4 +309,36 @@ export const profileRouter = createTRPCRouter({
         });
       }
     }),
+
+  getProfileById: publicProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ ctx, input }) => {
+
+      try {
+        return await ctx.db.user.findUnique({
+          where: { userId: input.userId },
+          include: {
+            UserProfile: true,
+            Question: {
+              include: {
+                _count: {
+                  select: {
+                    Answer: true,
+                    QuestionLike: true,
+                  }
+                }
+              },
+              orderBy: { createdAt: "desc" }
+            }
+          },
+        });
+      } catch (error) {
+        console.error("Error fetching profile by ID:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to get profile",
+        });
+      }
+    }),
+
 });
