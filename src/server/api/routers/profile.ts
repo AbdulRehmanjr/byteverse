@@ -229,24 +229,21 @@ export const profileRouter = createTRPCRouter({
     }),
 
 
-  getAllProfiles: protectedProcedure
+  getAllProfiles: publicProcedure
     .input(getAllProfilesInputSchema)
     .query(async ({ ctx, input }): Promise<GetAllProfilesResponse> => {
       const { limit, cursor, filter } = input;
 
       try {
         const where: Prisma.UserProfileWhereInput = {};
-
         if (filter?.tag) {
           where.tags = {
             has: filter.tag,
           };
         }
-
         if (filter?.isVerified !== undefined) {
           where.isVerified = filter.isVerified;
         }
-
         if (filter?.isTopContributor !== undefined) {
           where.isTopContributor = filter.isTopContributor;
         }

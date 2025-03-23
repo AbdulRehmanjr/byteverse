@@ -8,6 +8,7 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      name: string;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
@@ -60,6 +61,7 @@ export const authConfig = {
         return {
           id: user.userId,
           email: user.email,
+          name: user.userName,
         };
       },
     }),
@@ -69,6 +71,7 @@ export const authConfig = {
     jwt: ({ token, user }) => {
       if (user) {
         token.id = user.id;
+        token.name = user.name;
         // Add any other user properties you want to store in the token
       }
       return token;
@@ -78,6 +81,7 @@ export const authConfig = {
       user: {
         ...session.user,
         id: token.id as string,
+        name: token.name,
         // Add other properties from token if needed
       },
     }),

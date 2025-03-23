@@ -31,7 +31,6 @@ export const UserList = () => {
   }>({});
   const [searchInput, setSearchInput] = useState<string>("");
 
-  // Fetch profiles with pagination
   const [data, { isFetching, error }] =
     api.profile.getAllProfiles.useSuspenseQuery({
       limit: 20,
@@ -39,7 +38,6 @@ export const UserList = () => {
       filter,
     });
 
-  // Popular tags for filtering
   const popularTags = [
     "javascript",
     "react",
@@ -55,7 +53,7 @@ export const UserList = () => {
       ...prev,
       search: searchInput,
     }));
-    setCursor(undefined); // Reset pagination
+    setCursor(undefined);
   };
 
   const clearSearch = () => {
@@ -64,7 +62,7 @@ export const UserList = () => {
       ...prev,
       search: undefined,
     }));
-    setCursor(undefined); // Reset pagination
+    setCursor(undefined);
   };
 
   const handleTagFilter = (tag: string) => {
@@ -72,7 +70,7 @@ export const UserList = () => {
       ...prev,
       tag,
     }));
-    setCursor(undefined); // Reset pagination
+    setCursor(undefined);
   };
 
   const clearTagFilter = () => {
@@ -80,7 +78,7 @@ export const UserList = () => {
       ...prev,
       tag: undefined,
     }));
-    setCursor(undefined); // Reset pagination
+    setCursor(undefined);
   };
 
   const toggleVerifiedFilter = () => {
@@ -88,7 +86,7 @@ export const UserList = () => {
       ...prev,
       isVerified: prev.isVerified === undefined ? true : undefined,
     }));
-    setCursor(undefined); // Reset pagination
+    setCursor(undefined);
   };
 
   const toggleTopContributorFilter = () => {
@@ -96,7 +94,7 @@ export const UserList = () => {
       ...prev,
       isTopContributor: prev.isTopContributor === undefined ? true : undefined,
     }));
-    setCursor(undefined); // Reset pagination
+    setCursor(undefined);
   };
 
   const clearAllFilters = () => {

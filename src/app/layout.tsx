@@ -44,7 +44,7 @@ export default function RootLayout({
           <Header />
           <Center className="grid grid-cols-12">
             <LandingSideBar />
-            <main className="col-span-10 ">{children}</main>
+            <main className="col-span-10">{children}</main>
           </Center>
           <Footer/>
           <Toaster />

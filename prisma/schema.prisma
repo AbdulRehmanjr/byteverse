@@ -8,15 +8,17 @@ datasource db {
 }
 
 model User {
-    userId       String         @id @default(cuid())
-    userName     String         @unique
-    email        String         @unique
-    password     String
-    Question     Question[]
-    QuestionLike QuestionLike[]
-    Answer       Answer[]
-    Save         Save[]
-    UserProfile  UserProfile?
+    userId             String         @id @default(cuid())
+    userName           String         @unique
+    email              String         @unique
+    password           String
+    Question           Question[]
+    QuestionLike       QuestionLike[]
+    Answer             Answer[]
+    Save               Save[]
+    UserProfile        UserProfile?
+    userConversations  Conversation[] @relation("UserConversations")
+    guestConversations Conversation[] @relation("GuestConversations")
 }
 
 model QuestionLike {
@@ -91,4 +93,35 @@ model UserProfile {
     updatedAt            DateTime @updatedAt
 
     user User @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Conversation {
+    conversationId String   @id @default(cuid())
+    senderId       String   @unique
+    receiverId     String   @unique
+    senderName     String   @default("none")
+    lastMessage    String?
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+
+    sender   User      @relation("UserConversations", fields: [senderId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+    receiver User      @relation("GuestConversations", fields: [receiverId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+    messages Message[]
+
+    @@index([senderId])
+    @@index([receiverId])
+}
+
+model Message {
+    messageId      String       @id @default(cuid())
+    conversationId String
+    content        String
+    senderId       String
+    read           Boolean      @default(false)
+    createdAt      DateTime     @default(now())
+    updatedAt      DateTime     @updatedAt
+    conversation   Conversation @relation(fields: [conversationId], references: [conversationId], onDelete: Cascade)
+
+    @@index([conversationId])
+    @@index([createdAt])
 }

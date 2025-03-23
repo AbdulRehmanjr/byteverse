@@ -29,30 +29,24 @@ export const QuestionsPagination = ({
   questions, 
   questionsPerPage = 3 
 }: QuestionsPaginationProps) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  
-  // Calculate pagination values
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const totalQuestions = questions.length;
   const totalPages = Math.ceil(totalQuestions / questionsPerPage);
   const validPage = Math.max(1, Math.min(currentPage, totalPages || 1));
-  
-  // Get paginated questions
   const startIndex = (validPage - 1) * questionsPerPage;
   const endIndex = startIndex + questionsPerPage;
   const paginatedQuestions = questions.slice(startIndex, endIndex);
 
   return (
-    <div>
+    <>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold">Questions ({totalQuestions})</h2>
-        
+        <h2 className="text-xl font-bold font-heading text-primary">Questions ({totalQuestions})</h2>
         {totalPages > 1 && (
           <div className="text-sm text-muted-foreground">
             Page {validPage} of {totalPages}
           </div>
         )}
       </div>
-      
       {totalQuestions > 0 ? (
         <>
           <div className="space-y-4">
@@ -61,7 +55,7 @@ export const QuestionsPagination = ({
                 <CardHeader className="pb-2">
                   <Link 
                     href={`/questions/${question.questionId}`}
-                    className="text-lg font-semibold hover:text-primary hover:underline"
+                    className="font-heading text-lg font-semibold hover:text-primary hover:underline"
                   >
                     {question.title}
                   </Link>
@@ -71,7 +65,7 @@ export const QuestionsPagination = ({
                   </div>
                 </CardHeader>
                 <CardContent className="pb-2">
-                  <p className="line-clamp-2 text-sm text-muted-foreground">
+                  <p className="font-text line-clamp-2 text-sm text-muted-foreground">
                     {question.content}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1">
@@ -110,8 +104,7 @@ export const QuestionsPagination = ({
               </Card>
             ))}
           </div>
-          
-          {/* Pagination Navigation */}
+        
           {totalPages > 1 && (
             <div className="mt-6 flex items-center justify-center gap-2">
               <Button
@@ -127,9 +120,7 @@ export const QuestionsPagination = ({
               <div className="flex gap-1">
                 {Array.from({ length: totalPages }).map((_, i) => {
                   const pageNum = i + 1;
-                  const isCurrentPage = pageNum === validPage;
-                  
-                  // Show 2 pages on either side of current page or handle edge cases
+                  const isCurrentPage = pageNum === validPage;  
                   if (
                     pageNum === 1 ||
                     pageNum === totalPages ||
@@ -149,8 +140,6 @@ export const QuestionsPagination = ({
                       </Button>
                     );
                   }
-                  
-                  // Show ellipsis for skipped pages
                   if (
                     (pageNum === 2 && validPage > 4) ||
                     (pageNum === totalPages - 1 && validPage < totalPages - 3)
@@ -167,11 +156,9 @@ export const QuestionsPagination = ({
                       </Button>
                     );
                   }
-                  
                   return null;
                 })}
               </div>
-              
               <Button
                 variant="outline"
                 size="sm"
@@ -192,6 +179,6 @@ export const QuestionsPagination = ({
           </Button>
         </div>
       )}
-    </div>
+    </>
   );
 }
