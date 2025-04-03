@@ -1,4 +1,5 @@
 import 'react-quill-new/dist/quill.snow.css';
+import "@uploadthing/react/styles.css";
 import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { Providers } from "~/app/provider";
@@ -10,6 +11,9 @@ import { Inter } from 'next/font/google'
 import { Space_Grotesk } from 'next/font/google'
 import { JetBrains_Mono } from 'next/font/google'
 import { Toaster } from "~/components/ui/sonner";
+import { ourFileRouter } from "~/app/api/uploadthing/core";
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
+import { extractRouterConfig } from "uploadthing/server";
 
 export const textFont = Inter({
   subsets: ['latin'],
@@ -40,6 +44,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${textFont.variable} ${headingFont.variable} ${codeFont.variable}`}>
       <body className="">
+      <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
         <Providers>
           <Header />
           <Center className="grid grid-cols-12">

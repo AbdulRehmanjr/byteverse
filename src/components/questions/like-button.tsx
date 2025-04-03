@@ -3,7 +3,7 @@ import { ThumbsUp } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
-import { useLoginDialog } from "~/hooks/use-login";
+import { useLogin, } from "~/hooks/use-login";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
@@ -18,7 +18,7 @@ export const LikeButton = ({ likes, liked,questionId }: ComponentProps) => {
   const utils = api.useUtils();
   const [count, setCount] = useState<number>(likes);
   const [isLike, setLike] = useState<boolean>(false);
-  const { setIsLoginOpen } = useLoginDialog();
+  const { setIsLogin } = useLogin();
 
   const makeLike = api.question.likeQuestion.useMutation({
     onSuccess: () => {
@@ -35,7 +35,7 @@ export const LikeButton = ({ likes, liked,questionId }: ComponentProps) => {
 
   const likeHandler = () => {
     if (!session.data?.user.id) {
-      setIsLoginOpen(true);
+      setIsLogin(true);
     } else {
       setCount(() => count + 1);
       setLike(true);

@@ -2,16 +2,15 @@ import { Home, HelpCircle, Tag, Bookmark, Users, Building2, Gitlab, ClipboardLis
 import { Button } from "~/components/ui/button";
 import Link from 'next/link';
 
-
 const menus = [
     { title: 'Home', icon: Home, href: '/' },
     { title: 'Questions', icon: HelpCircle, href: '/questions' },
+    { title: 'Posts', icon: ClipboardList, href: '/posts' },
     { title: 'Tags', icon: Tag, href: '/tags' },
     { title: 'Bookmarks', icon: Bookmark, href: '/bookmark' },
     { title: 'Users', icon: Users, href: '/users' },
     { title: 'Companies', icon: Building2, href: '/companies' },
     { title: 'label' , icon:Tag,href:'/label'},
-
 ];
 const submenus = [
     {title : 'LABS' , icon : Gitlab,href :''},

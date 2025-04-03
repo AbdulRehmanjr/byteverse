@@ -8,17 +8,23 @@ datasource db {
 }
 
 model User {
-    userId             String         @id @default(cuid())
-    userName           String         @unique
-    email              String         @unique
+    userId             String           @id @default(cuid())
+    userName           String           @unique
+    email              String           @unique
     password           String
     Question           Question[]
     QuestionLike       QuestionLike[]
     Answer             Answer[]
     Save               Save[]
     UserProfile        UserProfile?
-    userConversations  Conversation[] @relation("UserConversations")
-    guestConversations Conversation[] @relation("GuestConversations")
+    userConversations  Conversation[]   @relation("UserConversations")
+    guestConversations Conversation[]   @relation("GuestConversations")
+    Post               Post[]
+    PostLike           PostLike[]
+    Comment            Comment[]
+    CodeSnippet        CodeSnippet[]
+    SnippetLike        SnippetLike[]
+    SnippetComment     SnippetComment[]
 }
 
 model QuestionLike {
@@ -124,4 +130,108 @@ model Message {
 
     @@index([conversationId])
     @@index([createdAt])
+}
+
+model Post {
+    postId    String   @id @default(cuid())
+    content   String   @db.Text
+    image     String
+    hashTags  String[] @default([])
+    userId    String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user     User       @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+    likes    PostLike[]
+    comments Comment[]
+    views    PostView[]
+}
+
+model PostLike {
+    id        String   @id @default(cuid())
+    postId    String
+    userId    String
+    createdAt DateTime @default(now())
+
+    post Post @relation(fields: [postId], references: [postId], onDelete: Cascade, onUpdate: Cascade)
+    user User @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+
+    @@unique([postId, userId])
+}
+
+model Comment {
+    id        String   @id @default(cuid())
+    content   String   @db.Text
+    postId    String
+    userId    String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    post Post @relation(fields: [postId], references: [postId], onDelete: Cascade, onUpdate: Cascade)
+    user User @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model PostView {
+    id        String   @id @default(cuid())
+    postId    String
+    viewerId  String
+    createdAt DateTime @default(now())
+
+    post Post @relation(fields: [postId], references: [postId], onDelete: Cascade, onUpdate: Cascade)
+
+    @@unique([postId, viewerId])
+}
+
+// Add these models to your existing schema.prisma file
+
+model CodeSnippet {
+    snippetId   String   @id @default(cuid())
+    title       String
+    description String?  @db.Text
+    code        String   @db.Text
+    language    String
+    userId      String
+    tags        String[] @default([])
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    user     User             @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+    likes    SnippetLike[]
+    comments SnippetComment[]
+    views    SnippetView[]
+}
+
+model SnippetLike {
+    id        String   @id @default(cuid())
+    snippetId String
+    userId    String
+    createdAt DateTime @default(now())
+
+    snippet CodeSnippet @relation(fields: [snippetId], references: [snippetId], onDelete: Cascade, onUpdate: Cascade)
+    user    User        @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+
+    @@unique([snippetId, userId])
+}
+
+model SnippetComment {
+    id        String   @id @default(cuid())
+    content   String   @db.Text
+    snippetId String
+    userId    String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    snippet CodeSnippet @relation(fields: [snippetId], references: [snippetId], onDelete: Cascade, onUpdate: Cascade)
+    user    User        @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model SnippetView {
+    id        String   @id @default(cuid())
+    snippetId String
+    viewerId  String
+    createdAt DateTime @default(now())
+
+    snippet CodeSnippet @relation(fields: [snippetId], references: [snippetId], onDelete: Cascade, onUpdate: Cascade)
+
+    @@unique([snippetId, viewerId])
 }

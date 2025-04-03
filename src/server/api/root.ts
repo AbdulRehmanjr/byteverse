@@ -6,6 +6,8 @@ import { userRouter } from "~/server/api/routers/user";
 import { profileRouter } from "~/server/api/routers/profile";
 import { conversationRouter } from "~/server/api/routers/converstaion";
 import { messageRouter } from "~/server/api/routers/message";
+import { postRouter } from "~/server/api/routers/post";
+import { snippetRouter } from "~/server/api/routers/code-snippet";
 
 export const appRouter = createTRPCRouter({
   register:registerRouter,
@@ -15,6 +17,8 @@ export const appRouter = createTRPCRouter({
   profile:profileRouter,
   conversation: conversationRouter,
   message: messageRouter,
+  post : postRouter,
+  snippet : snippetRouter,
 });
 
 export type AppRouter = typeof appRouter;
