@@ -153,7 +153,7 @@ const StatInfo = ({stat}: {stat: number}) => (
   <p className="mt-1 text-3xl font-bold font-code">{stat}</p>
 );
 
-export const UserStats = async () => {
+export const  UserStats = async () => {
   const stats = await api.user.getStats();
   return (
     <div className="mb-8">

@@ -1,57 +1,42 @@
-import { Home, HelpCircle, Tag, Bookmark, Users, Building2, Gitlab, ClipboardList } from 'lucide-react';
+import {
+  Home,
+  HelpCircle,
+  Bookmark,
+  Users,
+  ClipboardList,
+  Code,
+} from "lucide-react";
 import { Button } from "~/components/ui/button";
-import Link from 'next/link';
+import Link from "next/link";
 
 const menus = [
-    { title: 'Home', icon: Home, href: '/' },
-    { title: 'Questions', icon: HelpCircle, href: '/questions' },
-    { title: 'Posts', icon: ClipboardList, href: '/posts' },
-    { title: 'Tags', icon: Tag, href: '/tags' },
-    { title: 'Bookmarks', icon: Bookmark, href: '/bookmark' },
-    { title: 'Users', icon: Users, href: '/users' },
-    { title: 'Companies', icon: Building2, href: '/companies' },
-    { title: 'label' , icon:Tag,href:'/label'},
-];
-const submenus = [
-    {title : 'LABS' , icon : Gitlab,href :''},
-    {title : 'Discussion', icon: ClipboardList , href: '/clip'}
+  { title: "Home", icon: Home, href: "/" },
+  { title: "Questions", icon: HelpCircle, href: "/questions" },
+  { title: "Posts", icon: ClipboardList, href: "/posts" },
+  { title: "Bookmarks", icon: Bookmark, href: "/bookmark" },
+  { title: "Users", icon: Users, href: "/users" },
+  { title: "Snippets", icon: Code, href: "/snippets" },
 ];
 
 export const LandingSideBar = () => {
-    return (      
-        <aside className="col-span-2 border-r">
-            <div className="flex flex-col gap-2 p-4">
-                {menus.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                        <Link href={item.href} key={item.title}>
-                            <Button 
-                                variant="ghost" 
-                                className="w-full justify-start gap-2 hover:bg-accent"
-                            >
-                                <Icon className="h-4 w-4" />
-                                <span>{item.title}</span>
-                            </Button>
-                        </Link>
-                    );
-                })}
-                <div className="flex flex-col gap-2 p-4">
-                {submenus.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                        <Link href={item.href} key={item.title}>
-                            <Button 
-                                variant="ghost" 
-                                className="w-full justify-start gap-2 hover:bg-accent"
-                            >
-                                <Icon className="h-4 w-4" />
-                                <span>{item.title}</span>
-                            </Button>
-                        </Link>
-                    );
-                })}
-            </div>
-            </div>
-        </aside>
-    );
+  return (
+    <aside className="col-span-2 border-r sticky top-0 h-screen">
+      <div className="flex flex-col gap-2 p-4">
+        {menus.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link href={item.href} key={item.title}>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-2 hover:bg-accent"
+              >
+                <Icon className="h-4 w-4" />
+                <span>{item.title}</span>
+              </Button>
+            </Link>
+          );
+        })}
+      </div>
+    </aside>
+  );
 };

@@ -14,6 +14,8 @@ import {
   Bookmark,
   MoreHorizontal,
   Send,
+  Search,
+  X,
 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -33,6 +35,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { PostSkeletons } from "../skeletons/post-list";
 import { CommentsSection } from "./post-comment";
+import { debounce } from "lodash";
 
 // Configure dayjs
 dayjs.extend(relativeTime);
@@ -68,13 +71,28 @@ export const PostList: React.FC = () => {
   const session = useSession();
   const [hasMore, setHasMore] = useState(true);
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const limit = 5;
 
   // Create a ref for the intersection observer
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // Query for posts with infinite scrolling
+  // Debounce search input to prevent excessive API calls
+  useEffect(() => {
+    const handler = debounce(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    handler();
+    return () => {
+      handler.cancel();
+    };
+  }, [searchQuery]);
+
+  // Query for posts with infinite scrolling and search filter
   const {
     data,
     fetchNextPage,
@@ -82,13 +100,25 @@ export const PostList: React.FC = () => {
     isFetchingNextPage,
     isLoading,
     isError,
+    refetch,
   } = api.post.getInfinitePosts.useInfiniteQuery(
-    { limit },
+    { 
+      limit,
+      searchQuery: debouncedSearchQuery 
+    },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
       enabled: true, // Enable for all users to see posts
     },
   );
+
+  // Refetch when search query changes
+  useEffect(() => {
+    setIsSearching(true);
+    void refetch().then(() => {
+      setIsSearching(false);
+    });
+  }, [debouncedSearchQuery, refetch]);
 
   const likedByMe = api.post.getLikedPostsByMe.useQuery(undefined, {
     enabled: !!session.data,
@@ -196,6 +226,11 @@ export const PostList: React.FC = () => {
     likeMutation.mutate({ postId });
   };
 
+  // Clear search
+  const handleClearSearch = () => {
+    setSearchQuery("");
+  };
+
   if (isError) {
     return (
       <div className="my-8 text-center">
@@ -213,12 +248,61 @@ export const PostList: React.FC = () => {
 
   return (
     <>
-      {/* Create post button */}
+      {/* Header with Create and Search */}
       <div className="sticky top-0 z-10 mb-8 bg-background py-4">
-        <Button asChild>
-          <Link href="/posts/create">Create New Post</Link>
-        </Button>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Button asChild>
+            <Link href="/posts/create">Create New Post</Link>
+          </Button>
+          
+          {/* Search input */}
+          <div className="relative flex-1 sm:max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search posts by content or hashtags..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-10"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full p-0"
+                onClick={handleClearSearch}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        {/* Search filters display */}
+        {debouncedSearchQuery && (
+          <div className="mt-4 flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              Searching for: <strong>{debouncedSearchQuery}</strong>
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 rounded-full px-2 py-0"
+              onClick={handleClearSearch}
+            >
+              Clear
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Loading state for search */}
+      {isSearching && !isLoading && (
+        <div className="mb-8 flex items-center justify-center">
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          <span>Searching posts...</span>
+        </div>
+      )}
 
       {/* Posts with comments section */}
       <div className="space-y-8">
@@ -252,57 +336,178 @@ export const PostList: React.FC = () => {
           </div>
         ) : (
           <>
-            {posts.map((post: Post) => (
-              <div key={post.postId} className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {/* Post Card */}
-                <Card className="overflow-hidden">
-                  {/* Post header */}
-                  <div className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border ring-2 ring-primary/10">
-                        <AvatarImage
-                          src={`https://avatar.vercel.sh/${post.postId}.png`}
-                        />
-                        <AvatarFallback>
-                          {post.user.userName?.substring(0, 2).toUpperCase() ??
-                            "UN"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col">
-                        <Link
-                          href={`/profile/${post.user.userId}`}
-                          className="font-semibold hover:underline"
-                        >
-                          {post.user.userName ?? "Anonymous"}
-                        </Link>
-                        <span className="flex items-center text-xs text-muted-foreground">
-                          <Clock className="mr-1 h-3 w-3" />
-                          {dayjs(post.createdAt).fromNow()}
-                        </span>
+            {posts.length > 0 ? (
+              posts.map((post: Post) => (
+                <div key={post.postId} className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {/* Post Card */}
+                  <Card className="overflow-hidden">
+                    {/* Post header */}
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border ring-2 ring-primary/10">
+                          <AvatarImage
+                            src={`https://avatar.vercel.sh/${post.postId}.png`}
+                          />
+                          <AvatarFallback>
+                            {post.user.userName?.substring(0, 2).toUpperCase() ??
+                              "UN"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <Link
+                            href={`/profile/${post.user.userId}`}
+                            className="font-semibold hover:underline"
+                          >
+                            {post.user.userName ?? "Anonymous"}
+                          </Link>
+                          <span className="flex items-center text-xs text-muted-foreground">
+                            <Clock className="mr-1 h-3 w-3" />
+                            {dayjs(post.createdAt).fromNow()}
+                          </span>
+                        </div>
                       </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 rounded-full hover:bg-accent"
+                          >
+                            <MoreHorizontal className="h-5 w-5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              void navigator.clipboard.writeText(
+                                `${window.location.origin}/posts/${post.postId}`,
+                              );
+                              toast.success("Link copied to clipboard");
+                            }}
+                          >
+                            Copy link
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              if (navigator.share) {
+                                navigator
+                                  .share({
+                                    title: "Check out this post",
+                                    url: `${window.location.origin}/posts/${post.postId}`,
+                                  })
+                                  .catch((error) =>
+                                    console.error("Error sharing:", error),
+                                  );
+                              } else {
+                                void navigator.clipboard.writeText(
+                                  `${window.location.origin}/posts/${post.postId}`,
+                                );
+                                toast.success("Link copied to clipboard");
+                              }
+                            }}
+                          >
+                            Share post
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>Report post</DropdownMenuItem>
+                          {session.data?.user.id === post.userId && (
+                            <>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/posts/edit/${post.postId}`}>
+                                  Edit post
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                Delete post
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+
+                    {/* Post content - before image */}
+                    <div className="px-4 pb-3">
+                      <p className="text-base">{post.content}</p>
+
+                      {post.hashTags.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {post.hashTags.map((tag, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="flex items-center bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                              onClick={() => setSearchQuery(tag)}
+                            >
+                              <Tag className="mr-1 h-3 w-3" />
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Post image */}
+                    <div className="relative aspect-square w-full overflow-hidden">
+                      <Image
+                        src={
+                          post.image && post.image.trim() !== ""
+                            ? post.image
+                            : "/placeholder.png"
+                        }
+                        alt="Post image"
+                        fill
+                        className="object-cover transition-transform duration-500 hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, 768px"
+                        priority={true}
+                      />
+                    </div>
+
+                    {/* Post actions */}
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-4">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-9 w-9 rounded-full hover:bg-accent"
+                          className={cn(
+                            "h-10 w-10 rounded-full",
+                            likedByMe.data?.some(
+                              (like: PostLike) => like.postId === post.postId,
+                            )
+                              ? "text-red-500"
+                              : "",
+                          )}
+                          onClick={() => handleLike(post.postId)}
                         >
-                          <MoreHorizontal className="h-5 w-5" />
+                          <Heart
+                            className={cn(
+                              "h-6 w-6",
+                              likedByMe.data?.some(
+                                (like: PostLike) => like.postId === post.postId,
+                              )
+                                ? "fill-red-500"
+                                : "",
+                            )}
+                          />
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 rounded-full"
                           onClick={() => {
-                            navigator.clipboard.writeText(
-                              `${window.location.origin}/posts/${post.postId}`,
+                            const commentInput = document.getElementById(
+                              `comment-input-${post.postId}`,
                             );
-                            toast.success("Link copied to clipboard");
+                            if (commentInput) {
+                              commentInput.focus();
+                            }
                           }}
                         >
-                          Copy link
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
+                          <MessageCircle className="h-6 w-6" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 rounded-full"
                           onClick={() => {
                             if (navigator.share) {
                               navigator
@@ -314,208 +519,123 @@ export const PostList: React.FC = () => {
                                   console.error("Error sharing:", error),
                                 );
                             } else {
-                              navigator.clipboard.writeText(
+                              void navigator.clipboard.writeText(
                                 `${window.location.origin}/posts/${post.postId}`,
                               );
                               toast.success("Link copied to clipboard");
                             }
                           }}
                         >
-                          Share post
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Report post</DropdownMenuItem>
-                        {session.data?.user.id === post.userId && (
-                          <>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/posts/edit/${post.postId}`}>
-                                Edit post
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive focus:text-destructive">
-                              Delete post
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  {/* Post content - before image */}
-                  <div className="px-4 pb-3">
-                    <p className="text-base">{post.content}</p>
-
-                    {post.hashTags.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {post.hashTags.map((tag, index) => (
-                          <Badge
-                            key={index}
-                            variant="secondary"
-                            className="flex items-center bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                          >
-                            <Tag className="mr-1 h-3 w-3" />
-                            {tag}
-                          </Badge>
-                        ))}
+                          <Share2 className="h-6 w-6" />
+                        </Button>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Post image */}
-                  <div className="relative aspect-square w-full overflow-hidden">
-                    <Image
-                      src={
-                        post.image && post.image.trim() !== ""
-                          ? post.image
-                          : "/placeholder.png"
-                      }
-                      alt="Post image"
-                      fill
-                      className="object-cover transition-transform duration-500 hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, 768px"
-                      priority={true}
-                    />
-                  </div>
-
-                  {/* Post actions */}
-                  <div className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-4">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className={cn(
-                          "h-10 w-10 rounded-full",
-                          likedByMe.data?.some(
-                            (like: PostLike) => like.postId === post.postId,
-                          )
-                            ? "text-red-500"
-                            : "",
-                        )}
-                        onClick={() => handleLike(post.postId)}
+                        className="h-10 w-10 rounded-full"
                       >
-                        <Heart
-                          className={cn(
-                            "h-6 w-6",
-                            likedByMe.data?.some(
-                              (like: PostLike) => like.postId === post.postId,
-                            )
-                              ? "fill-red-500"
-                              : "",
+                        <Bookmark className="h-6 w-6" />
+                      </Button>
+                    </div>
+
+                    {/* Post stats and content */}
+                    <CardContent className="px-4 py-0">
+                      <div className="mb-2">
+                        <span className="font-semibold">
+                          {post._count?.likes ?? 0} likes
+                        </span>
+                      </div>
+                    </CardContent>
+
+                    {/* Add comment */}
+                    <CardFooter className="border-t p-4">
+                      <div className="flex w-full items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={
+                              session.data?.user.image ??
+                              `https://avatar.vercel.sh/user.png`
+                            }
+                          />
+                          <AvatarFallback>
+                            {session.data?.user.name
+                              ?.substring(0, 2)
+                              .toUpperCase() ?? "UN"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <Input
+                          id={`comment-input-${post.postId}`}
+                          placeholder="Add a comment..."
+                          className="flex-1 rounded-full border-0 bg-accent/30 focus-visible:ring-1 focus-visible:ring-ring"
+                          value={commentInputs[post.postId] ?? ""}
+                          onChange={(e) =>
+                            handleCommentInputChange(post.postId, e.target.value)
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSubmitComment(post.postId);
+                            }
+                          }}
+                        />
+                        <Button
+                          size="icon"
+                          className="h-10 w-10 rounded-full"
+                          variant="ghost"
+                          onClick={() => handleSubmitComment(post.postId)}
+                          disabled={
+                            commentInputs[post.postId]?.trim() === "" ||
+                            addCommentMutation.isPending
+                          }
+                        >
+                          {addCommentMutation.isPending ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                          ) : (
+                            <Send className="h-5 w-5" />
                           )}
-                        />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-10 w-10 rounded-full"
-                        onClick={() => {
-                          const commentInput = document.getElementById(
-                            `comment-input-${post.postId}`,
-                          );
-                          if (commentInput) {
-                            commentInput.focus();
-                          }
-                        }}
-                      >
-                        <MessageCircle className="h-6 w-6" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-10 w-10 rounded-full"
-                        onClick={() => {
-                          if (navigator.share) {
-                            navigator
-                              .share({
-                                title: "Check out this post",
-                                url: `${window.location.origin}/posts/${post.postId}`,
-                              })
-                              .catch((error) =>
-                                console.error("Error sharing:", error),
-                              );
-                          } else {
-                            navigator.clipboard.writeText(
-                              `${window.location.origin}/posts/${post.postId}`,
-                            );
-                            toast.success("Link copied to clipboard");
-                          }
-                        }}
-                      >
-                        <Share2 className="h-6 w-6" />
-                      </Button>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-10 w-10 rounded-full"
-                    >
-                      <Bookmark className="h-6 w-6" />
-                    </Button>
-                  </div>
+                        </Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
 
-                  {/* Post stats and content */}
-                  <CardContent className="px-4 py-0">
-                    <div className="mb-2">
-                      <span className="font-semibold">
-                        {post._count?.likes ?? 0} likes
-                      </span>
-                    </div>
-                  </CardContent>
-
-                  {/* Add comment */}
-                  <CardFooter className="border-t p-4">
-                    <div className="flex w-full items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={
-                            session.data?.user.image ??
-                            `https://avatar.vercel.sh/user.png`
-                          }
-                        />
-                        <AvatarFallback>
-                          {session.data?.user.name
-                            ?.substring(0, 2)
-                            .toUpperCase() ?? "UN"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <Input
-                        id={`comment-input-${post.postId}`}
-                        placeholder="Add a comment..."
-                        className="flex-1 rounded-full border-0 bg-accent/30 focus-visible:ring-1 focus-visible:ring-ring"
-                        value={commentInputs[post.postId] ?? ""}
-                        onChange={(e) =>
-                          handleCommentInputChange(post.postId, e.target.value)
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSubmitComment(post.postId);
-                          }
-                        }}
-                      />
-                      <Button
-                        size="icon"
-                        className="h-10 w-10 rounded-full"
-                        variant="ghost"
-                        onClick={() => handleSubmitComment(post.postId)}
-                        disabled={
-                          !commentInputs[post.postId]?.trim() ??
-                          addCommentMutation.isPending
-                        }
-                      >
-                        {addCommentMutation.isPending ? (
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                        ) : (
-                          <Send className="h-5 w-5" />
-                        )}
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-
-                {/* Comments Section */}
-                <CommentsSection postId={post.postId} />
+                  {/* Comments Section */}
+                  <CommentsSection postId={post.postId} />
+                </div>
+              ))
+            ) : (
+              // No posts with current search query
+              <div className="py-16 text-center">
+                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                  <Search className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <h3 className="mb-2 text-2xl font-medium">
+                  {debouncedSearchQuery
+                    ? `No posts found for "${debouncedSearchQuery}"`
+                    : "No posts yet"}
+                </h3>
+                <p className="mx-auto mb-6 max-w-sm text-muted-foreground">
+                  {debouncedSearchQuery
+                    ? "Try a different search term or clear the search"
+                    : "Be the first to share something with the community!"}
+                </p>
+                {debouncedSearchQuery ? (
+                  <Button
+                    className="px-8 py-6 text-lg"
+                    variant="outline"
+                    onClick={handleClearSearch}
+                  >
+                    Clear Search
+                  </Button>
+                ) : (
+                  <Button
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 px-8 py-6 text-lg text-white hover:from-blue-600 hover:to-purple-600"
+                    asChild
+                  >
+                    <Link href="/posts/create">Create First Post</Link>
+                  </Button>
+                )}
               </div>
-            ))}
+            )}
           </>
         )}
       </div>
@@ -533,25 +653,6 @@ export const PostList: React.FC = () => {
       {!hasMore && posts.length > 0 && (
         <div className="py-8 text-center text-muted-foreground">
           <p>You&apos;ve reached the end</p>
-        </div>
-      )}
-
-      {/* Show message when no posts */}
-      {!isLoading && posts.length === 0 && (
-        <div className="py-16 text-center">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-            <Heart className="h-10 w-10 text-muted-foreground" />
-          </div>
-          <h3 className="mb-2 text-2xl font-medium">No posts yet</h3>
-          <p className="mx-auto mb-6 max-w-sm text-muted-foreground">
-            Be the first to share something with the community!
-          </p>
-          <Button
-            className="bg-gradient-to-r from-blue-500 to-purple-500 px-8 py-6 text-lg text-white hover:from-blue-600 hover:to-purple-600"
-            asChild
-          >
-            <Link href="/posts/create">Create First Post</Link>
-          </Button>
         </div>
       )}
     </>

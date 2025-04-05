@@ -15,7 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "~/components/ui/dropdown-menu";
-import { Input } from "~/components/ui/input";
 import { Switch } from "~/components/ui/switch";
 import { Label } from "~/components/ui/label";
 import Link from "next/link";
@@ -29,8 +28,7 @@ export const UserList = () => {
     isTopContributor?: boolean;
     search?: string;
   }>({});
-  const [searchInput, setSearchInput] = useState<string>("");
-
+  
   const [data, { isFetching, error }] =
     api.profile.getAllProfiles.useSuspenseQuery({
       limit: 20,
@@ -48,16 +46,7 @@ export const UserList = () => {
     "node.js",
   ];
 
-  const handleSearch = () => {
-    setFilter((prev) => ({
-      ...prev,
-      search: searchInput,
-    }));
-    setCursor(undefined);
-  };
-
   const clearSearch = () => {
-    setSearchInput("");
     setFilter((prev) => ({
       ...prev,
       search: undefined,
@@ -99,7 +88,6 @@ export const UserList = () => {
 
   const clearAllFilters = () => {
     setFilter({});
-    setSearchInput("");
     setCursor(undefined);
   };
 
@@ -139,41 +127,13 @@ export const UserList = () => {
     <div className="space-y-6">
       {/* Header and filters */}
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h1 className="font-heading text-3xl font-bold text-primary">
+        <h2 className="mb-4 font-heading text-lg font-medium text-primary">
           Community
-        </h1>
+        </h2>
 
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
           {/* Search Box */}
-          <div className="relative flex w-full md:w-64 lg:w-80">
-            <Input
-              placeholder="Search users..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="rounded-r-none border-r-0 pr-16"
-            />
-            {searchInput && (
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="absolute right-14 top-0 h-10 w-10 rounded-none border-0"
-                onClick={clearSearch}
-              >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Clear search</span>
-              </Button>
-            )}
-            <Button
-              type="button"
-              className="h-10 rounded-l-none"
-              onClick={handleSearch}
-            >
-              <Search className="mr-2 h-4 w-4" />
-              <span>Search</span>
-            </Button>
-          </div>
+    
 
           {/* Combined Filters Button */}
           <DropdownMenu>

@@ -3,14 +3,14 @@ import { Button } from "~/components/ui/button";
 
 const links = [
   { title: "About", link: "/about" },
-  { title: "Products", link: "#" },
-  { title: "OverflowAI", link: "#" },
+  { title: "Term", link: "/term" },
+  { title: "Policy", link: "/policy" },
 ];
 export const NavBar = () => {
   return (
     <nav className="flex items-center gap-4">
-      {links.map((link,index) => (
-        <Button variant="secondary" key={index}asChild>
+      {links.map((link, index) => (
+        <Button variant="link" key={index} asChild>
           <Link href={link.link}>{link.title} </Link>
         </Button>
       ))}

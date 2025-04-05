@@ -42,7 +42,7 @@ export function UserAccountDropdown() {
           <DropdownMenuItem className="cursor-pointer" asChild>
             <Link href="/profile">
               <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
+              <span>/users/Profile</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem className="cursor-pointer">

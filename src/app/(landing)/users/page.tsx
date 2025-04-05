@@ -15,7 +15,6 @@ export default function UsersPage() {
           Connect with developers, ask questions, and share knowledge
         </p>
       </div>
-      <UserFilter />
       <UserStats />
       <Suspense fallback={  <UserListSkeleton/>}>
         <UserList />
